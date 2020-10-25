@@ -1,6 +1,6 @@
-const { MessageFlags } = require("discord.js");
+// @ts-check
 
-exports.run = async (client, message, args, level) => { // eslint-disable-line no-unused-vars
+exports.run = async (client, message, _args, _level) => { // eslint-disable-line no-unused-vars
   const channels = message.guild.channels.cache.array();
  
   for (const c of channels) {

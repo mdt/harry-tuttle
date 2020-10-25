@@ -4,8 +4,7 @@
   "description": "A boilerplate example bot with command handler and reloadable commands. Updated and Maintained by the Idiot's Guide Community",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "postinstall": "node setup.js"
+    "start": "node index.js"
   },
   "engines": {
     "node": ">=12"
@@ -31,6 +30,14 @@
     "inquirer": "^7.1.0",
     "moment": "^2.24.0",
     "moment-duration-format": "^2.3.2",
-    "slugify": "^1.4.5"
+    "slug": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^5.4.0",
+    "@types/chalk": "^2.2.0",
+    "@types/inquirer": "^7.1.0",
+    "@types/moment": "^2.13.0",
+    "@types/moment-duration-format": "^2.2.2",
+    "@types/slug": "^0.9.1"
   }
 }

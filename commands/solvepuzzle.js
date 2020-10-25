@@ -1,7 +1,7 @@
-const { MessageFlags, ClientVoiceManager } = require("discord.js");
-const slugify = require("slugify");
+// @ts-check
+const slugify = require("slug");
 
-exports.run = async (client, message, args, level) => { // eslint-disable-line no-unused-vars
+exports.run = async (client, message, args, _level) => { // eslint-disable-line no-unused-vars
   const puzzleName = slugify(slugify(args.join("-").toLowerCase()).replace(/[^-0-9a-z_]/g, ''));
   client.logger.log(`Archiving channels for puzzle ${puzzleName}`);
 

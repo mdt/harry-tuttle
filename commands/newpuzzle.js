@@ -1,7 +1,7 @@
-const { MessageFlags, ClientVoiceManager } = require("discord.js");
-const slugify = require("slugify");
+// @ts-check
+const slugify = require("slug");
 
-exports.run = async (client, message, args, level) => { // eslint-disable-line no-unused-vars
+exports.run = async (client, message, args, _level) => { // eslint-disable-line no-unused-vars
   const puzzleName = slugify(slugify(args.join("-").toLowerCase()).replace(/[^-0-9a-z_]/g, ''));
   client.logger.log(`Creating puzzle ${puzzleName}`);
 
@@ -33,13 +33,7 @@ exports.run = async (client, message, args, level) => { // eslint-disable-line n
     return;
   }
 
-  const solvedCategory = message.guild.channels.cache.find(c => c.type === 'category' && c.name === 'solved');
-  
-
   const channels = message.guild.channels.cache.filter(c => (c.parent && c.parent.name.toLowerCase() === 'puzzles'));
- 
-
-
   const textChannels = channels.filter(c => (c.type === 'text'));
   const sortedTextChannels = Array.from(textChannels.sorted((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase())).values())
   for (const [i, c] of sortedTextChannels.entries()) {
