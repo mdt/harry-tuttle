@@ -1,5 +1,24 @@
 # Harry Tuttle: Discord Bot for Central Services
 
+## Deployment instructions
+
+### Initial setup
+
+- Give Josh an ssh public key to authorize access to dokku.
+- git clone this repo
+- `git remote add dokku dokku@flushlyft.com:harry-tuttle`
+
+### To do a deploy
+
+- `git push dokku`
+
+### To change a configuration variable
+
+You'll probably never need to do this, but:
+
+- `ssh dokku@flushlyft.com config:set harry-tuttle VAR=val`
+
+This will be available in the code as an environment variable (e.g. `process.env.VAR`).
 
 ## Requirements
 
