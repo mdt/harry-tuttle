@@ -21,6 +21,11 @@ If you get into an egregiously bad state and it's refusing to deploy,
 you can kick it with `ssh dokku@flushlyft.com apps:unlock harry-tuttle`.
 (But you should need this rarely, if ever.)
 
+### To view logs
+
+- To view recent logs: `ssh dokku@flushlyft.com logs harry-tuttle`
+- To continuously follow the logs: `ssh dokku@flushlyft.com logs harry-tuttle -t`
+
 ### To change a configuration variable
 
 You'll probably never need to do this, but:
