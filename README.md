@@ -1,13 +1,5 @@
-# Guide Bot
-An example of a Discord.js Bot Handler. Updated and Maintained by the Idiot's Guide Community.
+# Harry Tuttle: Discord Bot for Central Services
 
-Ages ago, Guide Bot was actually a little bot I had on the official discord.js server.
-It helped me link to the d.js bot making guide I was building, with links.
-This bot grew into something that I could show new coders and bot makers, but
-over time it grew into a full framework - one that is now under the hands of a 
-group of contributors, and no longer easily "understandable" by the majority
-of our newbies. So I've pulled the original Guide Bot out of the mothballs,
-gave it a fresh coat of paint and grease, and here it is back in its full glory!
 
 ## Requirements
 
@@ -33,15 +25,9 @@ command may be incorrect without the Guild Members intent.
 Intents are loaded from your config, and will get created by the setup scripts.
 
 For more info about intents checkout the [official Discord.js guide page](https://discordjs.guide/popular-topics/intents.html) and the [official Discord docs page](https://discord.com/developers/docs/topics/gateway#gateway-intents).
-## Downloading
+## Setup
 
-In a command prompt in your projects folder (wherever that may be) run the following:
-
-`git clone https://github.com/An-Idiots-Guide/guidebot.git`
-
-Once finished: 
-
-- In the folder from where you ran the git command, run `cd guidebot` and then run `npm install`
+- In the folder from where you cloned this project, run `npm install`
 - **If you get any error about python or msibuild.exe or binding, read the requirements section again!**
 - Run `node setup.js` to generate a proper configuration file and settings.
 
@@ -56,3 +42,15 @@ To add the bot to your guild, you have to get an oauth link for it.
 
 You can use this site to help you generate a full OAuth Link, which includes a calculator for the permissions:
 [https://finitereality.github.io/permissions-calculator/?v=0](https://finitereality.github.io/permissions-calculator/?v=0)
+
+# History and Credits
+
+This bot is based on the [example Discord.js Bot Handler](https://github.com/AnIdiotsGuide/guidebot) updated and Maintained by the Idiot's Guide Community.
+
+Ages ago, Guide Bot was actually a little bot I had on the official discord.js server.
+It helped me link to the d.js bot making guide I was building, with links.
+This bot grew into something that I could show new coders and bot makers, but
+over time it grew into a full framework - one that is now under the hands of a 
+group of contributors, and no longer easily "understandable" by the majority
+of our newbies. So I've pulled the original Guide Bot out of the mothballs,
+gave it a fresh coat of paint and grease, and here it is back in its full glory!
