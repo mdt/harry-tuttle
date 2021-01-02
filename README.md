@@ -12,6 +12,15 @@
 
 - `git push dokku`
 
+Generally that's all you'll need to do.
+It will take several minutes
+and you'll see a bunch of status messages
+that are included as the output of your `git push` command.
+If there are errors, they're usually pretty helpful.
+If you get into an egregiously bad state and it's refusing to deploy,
+you can kick it with `ssh dokku@flushlyft.com apps:unlock harry-tuttle`.
+(But you should need this rarely, if ever.)
+
 ### To change a configuration variable
 
 You'll probably never need to do this, but:
