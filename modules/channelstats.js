@@ -22,15 +22,18 @@ class ChannelTime {
 		  this.add_channel_stats = this.db.prepare('INSERT OR IGNORE INTO channel_stats (channel, uid) VALUES (?, ?)')
 
 		  this.stats_query = this.db.prepare("SELECT s.uid, (joined_seconds + ifnull(strftime('%s','now') - cc.joined_time/1000, 0)) AS total_seconds, speaking_seconds, cc.joined_time FROM channel_stats s LEFT JOIN current_channel cc ON s.channel = cc.channel AND s.uid = cc.uid WHERE s.channel = ? AND total_seconds >= ? ORDER BY total_seconds DESC")
+		  this.stats_query.safeIntegers(true) // this is critical, because JavaScript is a shitty fucking mickey mouse language
+		  
 		  process.on('exit', () => this.db.close())
 	 }
 
+	 get_channels() {
+		  var stmt = this.db.prepare('SELECT DISTINCT channel FROM channel_stats ORDER BY channel ASC')
+		  return stmt.all()
+	 }
+	 
 	 get_channel_stats(channel_name, min_seconds = 0) {
-		  const stats = this.stats_query.all(channel_name, min_seconds)
-		  for (const row of stats) {
-		  		console.log(`${row.uid} ${row.total_seconds}`);
-		  }
-		  return stats;
+		  return this.stats_query.all(channel_name, min_seconds)
 	 }
 	 
 	 current_channel(uid) {
@@ -60,7 +63,7 @@ class ChannelTime {
 	 }
 
 	 on_channel_join(uid, channelName) {
-		  console.log(`on_channel_join ${uid} ${channelName}`)
+		  console.log(`on_channel_join ${typeof uid} ${uid} ${channelName}`)
 		  this.add_channel_stats.run(channelName, uid)
 		  this.insert_current_channel.run(uid, channelName, Date.now(), Date.now())
 	 }

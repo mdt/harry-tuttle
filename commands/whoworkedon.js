@@ -36,7 +36,7 @@ exports.run = async (client, message, args, _level) => {
 	 for (const row of stats) {
 		  let username = "(unknown)";
 		  try {
-				const user = await message.guild.members.fetch(row.uid)
+				const user = await message.guild.members.fetch(row.uid.toString()) // must toString because uid is a bigint and JavaScript is stupid
 				username = user.displayName
 		  } catch (e) {
 				client.logger.error(`Unable to find user ${row.uid}: ${e}`)
