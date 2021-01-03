@@ -15,7 +15,7 @@ const config = {
   // By default GuideBot needs Guilds, Guild Messages and Direct Messages to work.
   // For join messages to work you need Guild Members, which is privileged and requires extra setup.
   // For more info about intents see the README.
-  intents: ["GUILDS","GUILD_MESSAGES","DIRECT_MESSAGES","GUILD_MEMBERS"],
+	 intents: ["GUILDS","GUILD_MESSAGES","DIRECT_MESSAGES","GUILD_VOICE_STATES","GUILD_PRESENCES","GUILD_MEMBERS"],
 
   // PERMISSION LEVEL DEFINITIONS.
   permLevels: [
