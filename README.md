@@ -1,13 +1,33 @@
-# Guide Bot
-An example of a Discord.js Bot Handler. Updated and Maintained by the Idiot's Guide Community.
+# Harry Tuttle: Discord Bot for Central Services
 
-Ages ago, Guide Bot was actually a little bot I had on the official discord.js server.
-It helped me link to the d.js bot making guide I was building, with links.
-This bot grew into something that I could show new coders and bot makers, but
-over time it grew into a full framework - one that is now under the hands of a 
-group of contributors, and no longer easily "understandable" by the majority
-of our newbies. So I've pulled the original Guide Bot out of the mothballs,
-gave it a fresh coat of paint and grease, and here it is back in its full glory!
+## Deployment instructions
+
+### Initial setup
+
+- Give Josh an ssh public key to authorize access to dokku.
+- git clone this repo
+- `git remote add dokku dokku@flushlyft.com:harry-tuttle`
+
+### To do a deploy
+
+- `git push dokku`
+
+Generally that's all you'll need to do.
+It will take several minutes
+and you'll see a bunch of status messages
+that are included as the output of your `git push` command.
+If there are errors, they're usually pretty helpful.
+If you get into an egregiously bad state and it's refusing to deploy,
+you can kick it with `ssh dokku@flushlyft.com apps:unlock harry-tuttle`.
+(But you should need this rarely, if ever.)
+
+### To change a configuration variable
+
+You'll probably never need to do this, but:
+
+- `ssh dokku@flushlyft.com config:set harry-tuttle VAR=val`
+
+This will be available in the code as an environment variable (e.g. `process.env.VAR`).
 
 ## Requirements
 
@@ -33,15 +53,9 @@ command may be incorrect without the Guild Members intent.
 Intents are loaded from your config, and will get created by the setup scripts.
 
 For more info about intents checkout the [official Discord.js guide page](https://discordjs.guide/popular-topics/intents.html) and the [official Discord docs page](https://discord.com/developers/docs/topics/gateway#gateway-intents).
-## Downloading
+## Setup
 
-In a command prompt in your projects folder (wherever that may be) run the following:
-
-`git clone https://github.com/An-Idiots-Guide/guidebot.git`
-
-Once finished: 
-
-- In the folder from where you ran the git command, run `cd guidebot` and then run `npm install`
+- In the folder from where you cloned this project, run `npm install`
 - **If you get any error about python or msibuild.exe or binding, read the requirements section again!**
 - Run `node setup.js` to generate a proper configuration file and settings.
 
@@ -56,3 +70,15 @@ To add the bot to your guild, you have to get an oauth link for it.
 
 You can use this site to help you generate a full OAuth Link, which includes a calculator for the permissions:
 [https://finitereality.github.io/permissions-calculator/?v=0](https://finitereality.github.io/permissions-calculator/?v=0)
+
+# History and Credits
+
+This bot is based on the [example Discord.js Bot Handler](https://github.com/AnIdiotsGuide/guidebot) updated and Maintained by the Idiot's Guide Community.
+
+Ages ago, Guide Bot was actually a little bot I had on the official discord.js server.
+It helped me link to the d.js bot making guide I was building, with links.
+This bot grew into something that I could show new coders and bot makers, but
+over time it grew into a full framework - one that is now under the hands of a 
+group of contributors, and no longer easily "understandable" by the majority
+of our newbies. So I've pulled the original Guide Bot out of the mothballs,
+gave it a fresh coat of paint and grease, and here it is back in its full glory!
