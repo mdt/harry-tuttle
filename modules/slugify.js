@@ -1,4 +1,4 @@
-const slug = require("slug");
+const slugify = require("slug");
 
 /// for converting discord API channel names into our internal format
 /// case insensitive
