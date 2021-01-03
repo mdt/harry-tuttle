@@ -25,9 +25,9 @@ exports.run = async (client, message, args, _level) => {
 		  return;  
 	 }
 
-	 const stats = channelstats.get_channel_stats(puzzleName)
+	 let stats = channelstats.get_channel_stats(puzzleName)
 	 if (!stats || stats.length == 0) {
-		  client.logger.log("No channel stats found for puzzle ${puzzleName}");
+		  client.logger.log(`No channel stats found for puzzle ${puzzleName}`);
 		  message.channel.send(`I wasn't able to find anything about a puzzle called ${puzzleName}`);
 		  return;
 	 }
@@ -36,15 +36,14 @@ exports.run = async (client, message, args, _level) => {
 	 for (const row of stats) {
 		  let username = "(unknown)";
 		  try {
-				const user = await message.guild.members.fetch(row.uid.toString())
+				const user = await message.guild.members.fetch(row.uid)
 				username = user.displayName
 		  } catch (e) {
-				client.logger.error(`Unable to find user ${row.uid}`)
+				client.logger.error(`Unable to find user ${row.uid}: ${e}`)
 		  }
 
-		  let joined_time = format_dTime(row.joined_seconds)
-		  let spoke_time = format_dTime(row.speaking_seconds)
-		  txt += `${username}: ${joined_time} (spoke for ${spoke_time})\n`
+		  let joined_time = format_dTime(row.total_seconds)
+		  txt += `${username}: ${joined_time}\n`
 	 }
 	 message.channel.send(txt)
 }

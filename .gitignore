@@ -60,3 +60,4 @@ typings/
 # dotenv environment variables file
 .env
 
+channel_stats.db

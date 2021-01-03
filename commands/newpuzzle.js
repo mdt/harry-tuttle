@@ -1,5 +1,5 @@
 // @ts-check
-const slugify = require("slug");
+const slugify = require("../modules/slugify.js");
 
 exports.run = async (client, message, args, _level) => { // eslint-disable-line no-unused-vars
 	 // specify category with option "-c"
@@ -9,7 +9,7 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 	 const category = (argv.c && argv.c.toLowerCase()) || "puzzles"
 	 
 	 // discord allows unicode in channel names, but no whitespace or some special characters. this seems to be undocumented so we'll just be aggressive about pruning
-	 const puzzleName = slugify(slugify(argv._.join("-").toLowerCase()).replace(/[^-0-9a-z_]/g, ''));
+	 const puzzleName = slugify(argv._.join("-"));
 	 client.logger.log(`Creating puzzle ${puzzleName} in category ${category}`);
 
 	 if (!puzzleName) {

@@ -1,5 +1,5 @@
 // @ts-check
-const slugify = require("slug");
+const slugify = require("../modules/slugify.js");
 
 exports.run = async (client, message, args, _level) => { // eslint-disable-line no-unused-vars
 	 // specify category with option "-c"
@@ -7,7 +7,7 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 	 let argv = require('yargs/yargs')(args).argv
 	 const category = (argv.c && argv.c.toLowerCase()) || "puzzles"
 
-	 const puzzleName = slugify(slugify(args.join("-").toLowerCase()).replace(/[^-0-9a-z_]/g, ''));
+	 const puzzleName = slugify(argv._.join("-"));
 	 client.logger.log(`Archiving channels for puzzle ${puzzleName} in category ${category}`);
 
 	 if (!puzzleName) {
@@ -26,9 +26,9 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 	 const puzzleCategory = message.guild.channels.cache.find(c => c.type === 'category' && c.name.toLowerCase() === category);
 	 // if puzzle category not found, then search globally
 	 if (puzzleCategory) {
-		  channelsToArchive = Array.from(message.guild.channels.cache.filter(c => (slugify(c.name.toLowerCase()).replace(/[^-0-9a-z_]/g, '') === puzzleName && c.parent == puzzleCategory)).values());
+		  channelsToArchive = Array.from(message.guild.channels.cache.filter(c => (slugify(c.name) === puzzleName && c.parent == puzzleCategory)).values());
 	 } else {
-		  channelsToArchive = Array.from(message.guild.channels.cache.filter(c => (slugify(c.name.toLowerCase()).replace(/[^-0-9a-z_]/g, '') === puzzleName)).values());
+		  channelsToArchive = Array.from(message.guild.channels.cache.filter(c => (slugify(c.name) === puzzleName)).values());
 	 }
 	 if (channelsToArchive.length === 0) {
 		  client.logger.log("Channels for puzzle ${puzzleName} not found when archiving");
