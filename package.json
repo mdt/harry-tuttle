@@ -25,12 +25,14 @@
   "dependencies": {
     "better-sqlite3": "^6.0.1",
     "chalk": "^4.0.0",
+    "discord": "^0.8.2",
     "discord.js": "^12.3.1",
     "enmap": "^5.2.4",
     "inquirer": "^7.1.0",
     "moment": "^2.24.0",
     "moment-duration-format": "^2.3.2",
-    "slug": "^4.0.1"
+    "slug": "^4.0.1",
+	 "yargs": "^10"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^5.4.0",
