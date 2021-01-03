@@ -27,9 +27,9 @@ class ChannelTime {
 
 	 get_channel_stats(channel_name, min_seconds = 0) {
 		  const stats = this.stats_query.all(channel_name, min_seconds)
-		  // for (const row of stats) {
-		  // 		console.log(`${row.uid} ${row.total_seconds}`);
-		  // }
+		  for (const row of stats) {
+		  		console.log(`${row.uid} ${row.total_seconds}`);
+		  }
 		  return stats;
 	 }
 	 
@@ -60,11 +60,13 @@ class ChannelTime {
 	 }
 
 	 on_channel_join(uid, channelName) {
+		  console.log(`on_channel_join ${uid} ${channelName}`)
 		  this.add_channel_stats.run(channelName, uid)
 		  this.insert_current_channel.run(uid, channelName, Date.now(), Date.now())
 	 }
 
 	 on_channel_leave(uid, channelName) { // note this must be called before on_channel_join for a leave/join pair
+		  console.log(`on_channel_leave ${uid} ${channelName}`)
 		  // update speaking just in case?
 		  this.on_speaking_change(uid, false)
 

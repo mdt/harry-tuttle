@@ -1,5 +1,5 @@
 require("../modules/channelstats.js")
-const slugify = require('slug');
+const slugify = require('../modules/slugify.js');
 
 var format_dTime = (secs) => {
 	 var hours = Math.floor(secs / 3600)
@@ -16,7 +16,7 @@ var format_dTime = (secs) => {
 }
 
 exports.run = async (client, message, args, _level) => {
-	 const puzzleName = slugify(slugify(args.join("-").toLowerCase()).replace(/[^-0-9a-z_]/g, ''));
+	 const puzzleName = slugify(args.join("-"));
 	 client.logger.log(`Getting stats for puzzle ${puzzleName}`);
 
 	 if (!puzzleName) {
