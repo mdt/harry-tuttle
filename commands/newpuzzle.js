@@ -1,9 +1,12 @@
 // @ts-check
 const slugify = require("../modules/slugify.js");
+const csfunctions = require("../modules/csfunctions.js");
+require("../modules/channelstats.js");
 
 exports.run = async (client, message, args, _level) => { // eslint-disable-line no-unused-vars
 	 // specify category with option "-c"
 	 // if no category is specified, the puzzle gets created in the 'puzzles' category
+	 // note that categories are purely a convenience feature for puzzle creation; we expect puzzle names to be globally unique.
 	 client.logger.log(`message: ${message} args: ${args}`)
 	 let argv = require('yargs/yargs')(args).argv
 	 const category = (argv.c && argv.c.toLowerCase()) || "puzzles"
@@ -39,28 +42,8 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 		  return;
 	 }
 
-	 const channels = message.guild.channels.cache.filter(c => (c.parent === puzzleCategory));
-	 const textChannels = channels.filter(c => (c.type === 'text'));
-	 const sortedTextChannels = Array.from(textChannels.sorted((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase())).values())
-	 for (const [i, c] of sortedTextChannels.entries()) {
-		  try {
-				client.logger.log(`Setting position ${i}: Channel: ${c.id}  ${c.position}. (${c.rawPosition}.)  Name: ${c.name} (${c.type }) Parent: ${c.parent ? c.parent.name : ''}`);
-				await c.setPosition(i);
-		  } catch (e) {
-				client.logger.error(e);
-		  }
-	 }
-
-	 const voiceChannels = channels.filter(c => (c.type === 'voice'))
-	 const sortedVoiceChannels = Array.from(voiceChannels.sorted((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase())).values())
-	 for (const [i, c] of sortedVoiceChannels.entries()) {
-		  try {
-				client.logger.log(`Setting position ${i}: Channel: ${c.id}  ${c.position}. (${c.rawPosition}.)  Name: ${c.name} (${c.type }) Parent: ${c.parent ? c.parent.name : ''}`);
-				await c.setPosition(i);
-		  } catch (e) {
-				client.logger.error(e);
-		  }
-	 }
+	 channelstats.on_channel_create(puzzleName, category);
+	 csfunctions.sort_category(client, message.guild.channels, puzzleCategory);
 	 client.logger.log('Done');
 
 	 message.channel.send(`OK, I created a new puzzle in ${category} with a voice channel called ${puzzleName}.`);

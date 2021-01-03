@@ -1,5 +1,6 @@
 require("../modules/channelstats.js")
 const slugify = require('../modules/slugify.js');
+const csfunctions = require('../modules/csfunctions.js');
 
 var format_dTime = (secs) => {
 	 var hours = Math.floor(secs / 3600)
@@ -16,22 +17,22 @@ var format_dTime = (secs) => {
 }
 
 exports.run = async (client, message, args, _level) => {
-	 const puzzleName = slugify(args.join("-"));
-	 client.logger.log(`Getting stats for puzzle ${puzzleName}`);
+	 const argSlug = slugify(args.join("-"));
+	 client.logger.log(`Getting stats for puzzle ${argSlug}`);
 
-	 if (!puzzleName) {
+	 if (!argSlug) {
 		  client.logger.log("Puzzle name is empty");
 		  message.channel.send("Hmm, you have to tell me the name of the puzzle like this: 'whoworkedon A Strange-Looking Crossword'");
 		  return;  
 	 }
-
-	 let stats = channelstats.get_channel_stats(puzzleName)
-	 if (!stats || stats.length == 0) {
-		  client.logger.log(`No channel stats found for puzzle ${puzzleName}`);
-		  message.channel.send(`I wasn't able to find anything about a puzzle called ${puzzleName}`);
+	 const puzzleName = await csfunctions.find_puzzle(client, message, argSlug, false, true);
+	 if (!puzzleName) {
+		  client.logger.log(`No channel stats found for puzzle ${argSlug}`);
+		  message.channel.send(`I wasn't able to find anything about a puzzle called ${argSlug}`);
 		  return;
 	 }
 
+	 let stats = channelstats.get_channel_stats(puzzleName)
 	 txt = ""
 	 for (const row of stats) {
 		  let username = "(unknown)";

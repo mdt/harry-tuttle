@@ -1,18 +1,26 @@
 // @ts-check
+require('../modules/channelstats.js');
 
-exports.run = async (client, message, _args, _level) => { // eslint-disable-line no-unused-vars
-  const channels = message.guild.channels.cache.array();
- 
-  for (const c of channels) {
-    try {
-      client.logger.log(`Channel: ${c.id}  ${c.position}. (${c.rawPosition}.)  Name: ${c.name} (${c.type }) Parent: ${c.parent ? c.parent.name : ''}`);
-    } catch (e) {
-      client.logger.error(e);
-    }
-  }
-  client.logger.log('Done');
+exports.run = async (client, message, args, _level) => { // eslint-disable-line no-unused-vars
+	 const puzzles = channelstats.get_channels()
 
-  message.channel.send("OK, it's in the log. What, you wanted the puzzles to be listed here? Someone had better implement that.");
+	 var category;
+	 msg = ""
+	 for (const p of puzzles) {
+		  let cat = p.category || "Uncategorized";
+		  if (category != cat) {
+				if (msg != "") { msg += '\n' }
+				msg += `**${cat}**\n`;
+				category = cat;
+		  }
+		  if (p.solved) {
+				msg += `~~${p.channel}~~\n`;
+		  } else {
+				msg += `${p.channel}\n`;
+		  }
+	 }
+
+	 message.channel.send(msg);
 };
 
 exports.conf = {
@@ -25,6 +33,6 @@ exports.conf = {
 exports.help = {
   name: "listpuzzles",
   category: "Miscelaneous",
-  description: "Lists all the puzzles",
+	 description: "Lists all the puzzles.",
   usage: "listpuzzles"
 };

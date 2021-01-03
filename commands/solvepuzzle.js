@@ -1,40 +1,42 @@
 // @ts-check
 const slugify = require("../modules/slugify.js");
+const csfunctions = require("../modules/csfunctions.js");
 
 exports.run = async (client, message, args, _level) => { // eslint-disable-line no-unused-vars
-	 // specify category with option "-c"
-	 // if no category is specified, the puzzle gets created in the 'puzzles' category
-	 let argv = require('yargs/yargs')(args).argv
-	 const category = (argv.c && argv.c.toLowerCase())
+	 const argSlug = slugify(args.join("-"));
+	 client.logger.log(`Archiving channels for puzzle ${argSlug}`);
 
-	 const puzzleName = slugify(argv._.join("-"));
-	 client.logger.log(`Archiving channels for puzzle ${puzzleName} in category ${category}`);
-
-	 if (!puzzleName) {
+	 if (!argSlug) {
 		  client.logger.log("Puzzle name is empty");
 		  message.channel.send("Hmm, you have to tell me the name of the puzzle like this: 'solvepuzzle A Strange-Looking Crossword'");
 		  return;  
 	 }
+	 const puzzleName = await csfunctions.find_puzzle(client, message, argSlug, true, false);
+	 if (!puzzleName) {
+		  client.logger.log(`No channels found in DB for ${argSlug}`);
+		  message.channel.send(`Hmm, I can't find any puzzle channels for a puzzle called ${argSlug}. Are you sure you've got the right name?`);
+		  return;
+	 }
 
-	 var channelsToArchive;
-	 var puzzleCategory;
-	 // if puzzle category not found, then search globally
-	 if (category) {
-		  puzzleCategory = message.guild.channels.cache.find(c => c.type === 'category' && c.name.toLowerCase() === category);
-	 }
-	 if (puzzleCategory) {
-		  channelsToArchive = Array.from(message.guild.channels.cache.filter(c => (slugify(c.name) === puzzleName && c.parent == puzzleCategory)).values());
-	 } else {
-		  channelsToArchive = Array.from(message.guild.channels.cache.filter(c => (slugify(c.name) === puzzleName)).values());
-	 }
+	 var channelsToArchive = Array.from(message.guild.channels.cache.filter(c => (slugify(c.name) === puzzleName)).values());
 	 if (channelsToArchive.length === 0) {
 		  client.logger.log(`Channels for puzzle ${puzzleName} not found when archiving`);
 		  message.channel.send(`Hmm, I can't find any puzzle channels for a puzzle called ${puzzleName}. Are you sure you've got the right name?`);
 		  return;
 	 }
 
+	 const dbUpdCount = channelstats.solve_puzzle(puzzleName);
+	 client.logger.log(`Marked ${dbUpdCount} puzzles solved in DB`)
+
+	 // assume channelsToArchive are all in the same category
+	 let category = channelsToArchive[0].parent
+	 if (category) {
+		  category = category.name
+	 } else {
+		  category = "puzzles"
+	 }
 	 let solvedCategory = category + " (SOLVED)"
-	 let solvedCategoryObj = message.guild.channels.cache.find(c => c.type === 'category' && c.name.toLowerCase() === solvedCategory.toLowerCase());
+	 var solvedCategoryObj;
 
 	 var textDone = false;
 	 var voiceDone = false;
@@ -43,7 +45,10 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 				try {
 					 client.logger.log(`Moving text channel ${c.name} to solved puzzles`);
 					 if (!solvedCategoryObj) {
-						  solvedCategoryObj = message.guild.channels.create(solvedCategory, { type: "category" })		  
+						  solvedCategoryObj = message.guild.channels.cache.find(c => c.type === 'category' && c.name.toLowerCase() === solvedCategory.toLowerCase());
+						  if (!solvedCategoryObj) {
+								solvedCategoryObj = message.guild.channels.create(solvedCategory, { type: "category" })
+						  }
 					 }
 					 await c.setParent(solvedCategoryObj);
 					 textDone = true;
@@ -63,19 +68,10 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 		  }
 	 }
 
-  // Sort puzzle in the "solved" category
-	 const solvedChannels = message.guild.channels.cache.filter(c => (c.parent == solvedCategoryObj));
-	 const textChannelsToSort = solvedChannels.filter(c => (c.type === 'text'));
-	 const sortedTextChannels = Array.from(textChannelsToSort.sorted((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase())).values())
-	 for (const [i, c] of sortedTextChannels.entries()) {
-		  try {
-				client.logger.log(`Setting position ${i}: Channel: ${c.id}  ${c.position}. (${c.rawPosition}.)  Name: ${c.name} (${c.type }) Parent: ${c.parent ? c.parent.name : ''}`);
-				await c.setPosition(i);
-		  } catch (e) {
-				client.logger.error(e);
-		  }
+	 // Sort puzzle in the "solved" category
+	 if (solvedCategoryObj) {
+		  csfunctions.sort_category(client, message.guild.channels, solvedCategoryObj);
 	 }
-
 
 	 client.logger.log('Done');
 	 var doneMessage = "OK, I";
@@ -103,5 +99,5 @@ exports.help = {
   name: "solvepuzzle",
   category: "Miscelaneous",
   description: "Marks a puzzle as solved, and archives the channels",
-  usage: "solvepuzzle [-c category] puzzle name"
+  usage: "solvepuzzle puzzle name"
 };

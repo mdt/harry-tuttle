@@ -4,8 +4,12 @@ class ChannelTime {
 	 constructor (dbFilePath) {
 		  this.db = new Database(dbFilePath, { timeout: 10000 });
 
-		  // key channels off name because IDs are ephemeral
-		  
+		  // key channels off name because IDs are ephemeral (if a voice channel is deleted then recreated)
+		  // really we want to key everything off puzzle IDs, but we don't have those
+		  // puzzle data
+		  this.db.exec("create table if not exists channels (channel text primary key, category text, solved int DEFAULT 0)");
+		  this._add_channel = this.db.prepare('INSERT OR IGNORE INTO channels VALUES (?, ?, 0)')
+
 		  // summary statistics - updated whenever a user starts / stops speaking or joins / leaves a channel.
 		  this.db.exec("create table if not exists channel_stats (channel text, uid unsigned big int, joined_seconds real DEFAULT 0, speaking_seconds real DEFAULT 0, PRIMARY KEY (channel, uid))")
 
@@ -13,31 +17,52 @@ class ChannelTime {
 		  this.db.exec("create table if not exists current_channel (uid unsigned big int primary key, channel text, joined_time integer, last_state_time integer, speaking integer)")
 
 		  // prepare statements
-		  this.get_current_channel = this.db.prepare('SELECT channel, joined_time, last_state_time, speaking FROM current_channel WHERE uid = ?')
-		  this.insert_current_channel = this.db.prepare('INSERT OR REPLACE INTO current_channel VALUES (?, ?, ?, ?, 0)')
-		  this.update_current_channel = this.db.prepare('UPDATE current_channel SET last_state_time = ?, speaking = ? WHERE uid = ?')
-		  this.delete_current_channel = this.db.prepare('DELETE FROM current_channel WHERE uid = ?')
-		  this.update_speaking = this.db.prepare('UPDATE channel_stats SET speaking_seconds = speaking_seconds + ? WHERE uid = ? AND channel = ?')
-		  this.update_joined = this.db.prepare('UPDATE channel_stats SET joined_seconds = joined_seconds + ? WHERE uid = ? AND channel = ?')
-		  this.add_channel_stats = this.db.prepare('INSERT OR IGNORE INTO channel_stats (channel, uid) VALUES (?, ?)')
+		  this._get_current_channel = this.db.prepare('SELECT channel, joined_time, last_state_time, speaking FROM current_channel WHERE uid = ?')
+		  this._insert_current_channel = this.db.prepare('INSERT OR REPLACE INTO current_channel VALUES (?, ?, ?, ?, 0)')
+		  this._update_current_channel = this.db.prepare('UPDATE current_channel SET last_state_time = ?, speaking = ? WHERE uid = ?')
+		  this._delete_current_channel = this.db.prepare('DELETE FROM current_channel WHERE uid = ?')
+		  this._update_speaking = this.db.prepare('UPDATE channel_stats SET speaking_seconds = speaking_seconds + ? WHERE uid = ? AND channel = ?')
+		  this._update_joined = this.db.prepare('UPDATE channel_stats SET joined_seconds = joined_seconds + ? WHERE uid = ? AND channel = ?')
+		  this._add_channel_stats = this.db.prepare('INSERT OR IGNORE INTO channel_stats (channel, uid) VALUES (?, ?)')
+		  this._find_channel = this.db.prepare('SELECT DISTINCT channel FROM channel_stats WHERE channel LIKE ?')
 
-		  this.stats_query = this.db.prepare("SELECT s.uid, (joined_seconds + ifnull(strftime('%s','now') - cc.joined_time/1000, 0)) AS total_seconds, speaking_seconds, cc.joined_time FROM channel_stats s LEFT JOIN current_channel cc ON s.channel = cc.channel AND s.uid = cc.uid WHERE s.channel = ? AND total_seconds >= ? ORDER BY total_seconds DESC")
-		  this.stats_query.safeIntegers(true) // this is critical, because JavaScript is a shitty fucking mickey mouse language
+		  this._rename_channel = this.db.prepare('UPDATE channels SET channel = ? WHERE channel = ?')
+		  this._rename_channel_stats = this.db.prepare('UPDATE channel_stats SET channel = ? WHERE channel = ?')
+		  this._rename_current_channel = this.db.prepare('UPDATE current_channel SET channel = ? WHERE channel = ?')
+
+		  this._stats_query = this.db.prepare("SELECT s.uid, (joined_seconds + ifnull(strftime('%s','now') - cc.joined_time/1000, 0)) AS total_seconds, speaking_seconds, cc.joined_time FROM channel_stats s LEFT JOIN current_channel cc ON s.channel = cc.channel AND s.uid = cc.uid WHERE s.channel = ? AND total_seconds >= ? ORDER BY total_seconds DESC")
+		  this._stats_query.safeIntegers(true) // this is critical, because JavaScript is a shitty fucking mickey mouse language
 		  
 		  process.on('exit', () => this.db.close())
 	 }
 
 	 get_channels() {
-		  var stmt = this.db.prepare('SELECT DISTINCT channel FROM channel_stats ORDER BY channel ASC')
+		  var stmt = this.db.prepare("SELECT channel, category, solved FROM channels ORDER BY category, channel ASC")
 		  return stmt.all()
+	 }
+
+	 find_channels(search_str, unsolved_only) {
+		  var stmt
+		  if (unsolved_only) {
+				stmt = this.db.prepare(`SELECT channel FROM channels WHERE channel LIKE '%${search_str}%' AND solved = 0`);
+		  } else {
+				stmt = this.db.prepare(`SELECT channel FROM channels WHERE channel LIKE '%${search_str}%'`);
+		  }
+		  return stmt.all();
+	 }
+
+	 solve_puzzle(channel_name) {
+		  var stmt = this.db.prepare('UPDATE channels SET solved=1 WHERE channel = ?')
+		  const inf = stmt.run(channel_name)
+		  return inf.changes
 	 }
 	 
 	 get_channel_stats(channel_name, min_seconds = 0) {
-		  return this.stats_query.all(channel_name, min_seconds)
+		  return this._stats_query.all(channel_name, min_seconds)
 	 }
 	 
 	 current_channel(uid) {
-		  let state = this.get_current_channel.all(uid)
+		  let state = this._get_current_channel.all(uid)
 		  if (state.length < 1) {
 				// error
 				return false
@@ -46,6 +71,22 @@ class ChannelTime {
 				return false
 		  }
 		  return state[0]
+	 }
+
+	 rename_channel(oldName, newName) {
+		  const upd = this.db.transaction(() => {
+				const chanResult = this._rename_channel.run(newName, oldName);
+				const statsResult = this._rename_channel_stats.run(newName, oldName);
+				const curResult = this._rename_current_channel.run(newName, oldName);
+				return [chanResult.changes, statsResult.changes, curResult.changes];
+		  });
+		  return upd();
+	 }
+
+	 recategorize_channel(channel_name, new_category) {
+		  var stmt = this.db.prepare('UPDATE channels SET category=? WHERE channel=?')
+		  const info = stmt.run(new_category, channel_name)
+		  return info.changes;
 	 }
 	 
 	 on_speaking_change(uid, is_speaking) {
@@ -56,33 +97,42 @@ class ChannelTime {
 					 // was not speaking before - ignore
 					 return
 				}
-				this.update_speaking.run((Date.now() - cur.last_state_time)/1000, uid, cur.channel)
+				this._update_speaking.run((Date.now() - cur.last_state_time)/1000, uid, cur.channel)
 		  }
 		  // update current_channel
-		  this.update_current_channel.run(Date.now(), is_speaking, uid)
+		  this._update_current_channel.run(Date.now(), is_speaking, uid)
 	 }
 
-	 on_channel_join(uid, channelName) {
+	 on_channel_create(channelName, category) {
+		  // called when bot creates a new channel, not really necessary as we pick up the channel automatically when anyone joins
+		  this._add_channel.run(channelName, category);
+	 }
+	 
+	 on_channel_join(uid, channelName, category = undefined) {
 		  console.log(`on_channel_join ${typeof uid} ${uid} ${channelName}`)
-		  this.add_channel_stats.run(channelName, uid)
-		  this.insert_current_channel.run(uid, channelName, Date.now(), Date.now())
+		  const join = this.db.transaction(() => {
+				this._add_channel.run(channelName, category);
+				this._add_channel_stats.run(channelName, uid);
+				this._insert_current_channel.run(uid, channelName, Date.now(), Date.now());
+		  });
+		  join();
 	 }
 
 	 on_channel_leave(uid, channelName) { // note this must be called before on_channel_join for a leave/join pair
 		  console.log(`on_channel_leave ${uid} ${channelName}`)
 		  // update speaking just in case?
-		  this.on_speaking_change(uid, false)
+		  //this.on_speaking_change(uid, false)
 
 		  // update channel_stats
 		  let cur = this.current_channel(uid)
 		  if (cur.channel != channelName) {
 				// channel mismatch, error / ignore
 		  } else {
-				this.update_joined.run((Date.now() - cur.joined_time)/1000, uid, channelName)
+				this._update_joined.run((Date.now() - cur.joined_time)/1000, uid, channelName)
 		  }
 
 		  // clear current_channel
-		  this.delete_current_channel.run(uid)
+		  this._delete_current_channel.run(uid)
 	 }
 };
 
