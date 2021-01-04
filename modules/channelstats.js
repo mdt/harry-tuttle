@@ -11,7 +11,7 @@ class ChannelTime {
 		  this._add_channel = this.db.prepare('INSERT OR IGNORE INTO channels VALUES (?, ?, 0)')
 
 		  // summary statistics - updated whenever a user starts / stops speaking or joins / leaves a channel.
-		  this.db.exec("create table if not exists channel_stats (channel text, uid unsigned big int, joined_seconds real DEFAULT 0, speaking_seconds real DEFAULT 0, PRIMARY KEY (channel, uid))")
+		  this.db.exec("create table if not exists channel_stats (channel text, uid unsigned big int, joined_seconds real DEFAULT 0, speaking_seconds real DEFAULT 0, last_seen integer, PRIMARY KEY (channel, uid))")
 
 		  // tracking data - checked & updated whenever a user starts / stops speaking or joins / leaves a channel, then updates channel_stats. last_state_time is node.js Date.now(); speaking is bool
 		  this.db.exec("create table if not exists current_channel (uid unsigned big int primary key, channel text, joined_time integer, last_state_time integer, speaking integer)")
@@ -22,7 +22,7 @@ class ChannelTime {
 		  this._update_current_channel = this.db.prepare('UPDATE current_channel SET last_state_time = ?, speaking = ? WHERE uid = ?')
 		  this._delete_current_channel = this.db.prepare('DELETE FROM current_channel WHERE uid = ?')
 		  this._update_speaking = this.db.prepare('UPDATE channel_stats SET speaking_seconds = speaking_seconds + ? WHERE uid = ? AND channel = ?')
-		  this._update_joined = this.db.prepare('UPDATE channel_stats SET joined_seconds = joined_seconds + ? WHERE uid = ? AND channel = ?')
+		  this._update_joined = this.db.prepare("UPDATE channel_stats SET joined_seconds = joined_seconds + ?, last_seen = ? WHERE uid = ? AND channel = ?")
 		  this._add_channel_stats = this.db.prepare('INSERT OR IGNORE INTO channel_stats (channel, uid) VALUES (?, ?)')
 		  this._find_channel = this.db.prepare('SELECT DISTINCT channel FROM channel_stats WHERE channel LIKE ?')
 
@@ -30,7 +30,16 @@ class ChannelTime {
 		  this._rename_channel_stats = this.db.prepare('UPDATE channel_stats SET channel = ? WHERE channel = ?')
 		  this._rename_current_channel = this.db.prepare('UPDATE current_channel SET channel = ? WHERE channel = ?')
 
-		  this._stats_query = this.db.prepare("SELECT s.uid, (joined_seconds + ifnull(strftime('%s','now') - cc.joined_time/1000, 0)) AS total_seconds, speaking_seconds, cc.joined_time FROM channel_stats s LEFT JOIN current_channel cc ON s.channel = cc.channel AND s.uid = cc.uid WHERE s.channel = ? AND total_seconds >= ? ORDER BY total_seconds DESC")
+		  this._max_seen = this.db.prepare("SELECT count(*) FROM current_channel WHERE channel = ?")
+		  this._stats_query = this.db.prepare(
+				`SELECT s.uid,
+                   (joined_seconds + ifnull(strftime('%s','now') - cc.joined_time/1000, 0)) AS total_seconds,
+                   speaking_seconds,
+                   CASE WHEN cc.joined_time IS NOT NULL THEN 'now'
+                        ELSE last_seen
+                   END AS last_seen
+              FROM channel_stats s LEFT JOIN current_channel cc ON s.channel = cc.channel AND s.uid = cc.uid WHERE s.channel = @channel AND total_seconds >= @min_seconds ORDER BY total_seconds DESC
+            `);
 		  this._stats_query.safeIntegers(true) // this is critical, because JavaScript is a shitty fucking mickey mouse language
 		  
 		  process.on('exit', () => this.db.close())
@@ -58,7 +67,7 @@ class ChannelTime {
 	 }
 	 
 	 get_channel_stats(channel_name, min_seconds = 0) {
-		  return this._stats_query.all(channel_name, min_seconds)
+		  return this._stats_query.all({channel: channel_name, min_seconds: min_seconds})
 	 }
 	 
 	 current_channel(uid) {
@@ -128,7 +137,8 @@ class ChannelTime {
 		  if (cur.channel != channelName) {
 				// channel mismatch, error / ignore
 		  } else {
-				this._update_joined.run((Date.now() - cur.joined_time)/1000, uid, channelName)
+				let now = Date.now();
+				this._update_joined.run((now - cur.joined_time)/1000, now, uid, channelName)
 		  }
 
 		  // clear current_channel

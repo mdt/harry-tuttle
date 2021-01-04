@@ -10,7 +10,7 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 		  let cat = p.category || "Uncategorized";
 		  if (category != cat) {
 				if (msg != "") { msg += '\n' }
-				msg += `**${cat}**\n`;
+				msg += `__**${cat}**__\n`;
 				category = cat;
 		  }
 		  if (p.solved) {

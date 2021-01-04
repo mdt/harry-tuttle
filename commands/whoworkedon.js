@@ -1,19 +1,14 @@
 require("../modules/channelstats.js")
 const slugify = require('../modules/slugify.js');
 const csfunctions = require('../modules/csfunctions.js');
+const { table } = require('table');
+const { printf } = require('fast-printf');
 
 var format_dTime = (secs) => {
 	 var hours = Math.floor(secs / 3600)
 	 var minutes = Math.floor(secs / 60) % 60
 	 var seconds = Math.floor(secs) % 60
-
-	 if (hours > 0) {
-		  return `${hours} hours ${minutes} minutes ${seconds} seconds`
-	 } else if (minutes > 0) {
-		  return `${minutes} minutes ${seconds} seconds`
-	 } else {
-		  return `${seconds} seconds`
-	 }
+	 return printf('%02d:%02d:%02d', hours, minutes, seconds);
 }
 
 exports.run = async (client, message, args, _level) => {
@@ -33,7 +28,7 @@ exports.run = async (client, message, args, _level) => {
 	 }
 
 	 let stats = channelstats.get_channel_stats(puzzleName)
-	 txt = ""
+	 let data = [["user", "time spent", "last seen"]];
 	 for (const row of stats) {
 		  let username = "(unknown)";
 		  try {
@@ -44,8 +39,18 @@ exports.run = async (client, message, args, _level) => {
 		  }
 
 		  let joined_time = format_dTime(row.total_seconds)
-		  txt += `${username}: ${joined_time}\n`
+		  let last_seen;
+		  if (row.last_seen == 'now')
+				last_seen = 'now';
+		  else
+				last_seen = format_dTime((Date.now() - row.last_seen)/1000) + " ago";
+
+		  data.push([username, joined_time, last_seen]);
 	 }
+	 const opts = { drawHorizontalLine: (index, size) => { return index == 0 || index == 1 || index == size; } }
+	 const tableOut = table(data, opts);
+
+	 const txt = `Stats for ${puzzleName}:\n\`${tableOut}\``;
 	 message.channel.send(txt)
 }
 
