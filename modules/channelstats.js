@@ -146,5 +146,5 @@ class ChannelTime {
 	 }
 };
 
-var instance = new ChannelTime("channel_stats.db")
+var instance = new ChannelTime(process.env.DBPATH)
 global.channelstats = instance;
