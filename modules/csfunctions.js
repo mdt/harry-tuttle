@@ -1,12 +1,27 @@
+const slugify = require('./slugify.js')
+
+const sortFunc = (a, b) => {
+	 const comp = slugify(a.name).localeCompare(slugify(b.name));
+	 if (comp === 0) {
+		  if (a.type === "text" && b.type === "voice") {
+				return 1;
+		  } else if (a.type === "voice" && b.type === "text") {
+				return -1;
+		  } else {
+				return 0;
+		  }
+	 }
+	 return comp;
+}
+
 /*
 Sort the puzzles in a category
 category is a CategoryChannel object
 */
 exports.sort_category = async (client, channels, category) => {
 	 channels = channels.cache.filter(c => (c.parent === category));
-	 const textChannels = channels.filter(c => (c.type === 'text'));
-	 const sortedTextChannels = Array.from(textChannels.sorted((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase())).values())
-	 for (const [i, c] of sortedTextChannels.entries()) {
+	 const sortedChannels = Array.from(channels.sorted(sortFunc).values())
+	 for (const [i, c] of sortedChannels.entries()) {
 		  try {
 				client.logger.log(`Setting position ${i}: Channel: ${c.id}  ${c.position}. (${c.rawPosition}.)  Name: ${c.name} (${c.type }) Parent: ${c.parent ? c.parent.name : ''}`);
 				await c.setPosition(i);
@@ -14,17 +29,13 @@ exports.sort_category = async (client, channels, category) => {
 				client.logger.error(e);
 		  }
 	 }
+}
 
-	 const voiceChannels = channels.filter(c => (c.type === 'voice'))
-	 const sortedVoiceChannels = Array.from(voiceChannels.sorted((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase())).values())
-	 for (const [i, c] of sortedVoiceChannels.entries()) {
-		  try {
-				client.logger.log(`Setting position ${i}: Channel: ${c.id}  ${c.position}. (${c.rawPosition}.)  Name: ${c.name} (${c.type }) Parent: ${c.parent ? c.parent.name : ''}`);
-				await c.setPosition(i);
-		  } catch (e) {
-				client.logger.error(e);
-		  }
-	 }
+/*
+Ignore channels for tracking on join / leaves if parent category is named env['CHANNEL_IGNORE_CATEGORIES']
+*/
+exports.ignore_channel = (client, channel) => {
+	 return channel.parent && client.ignore_categories.has(slugify(channel.parent.name));
 }
 
 /*
@@ -43,6 +54,9 @@ const find_puzzle = async (client, message, search_str, unsolved_only, accept_pa
 	 if (channels.length == 0)
 		  return null;
 	 if (channels.length == 1) {
+		  if (search_str == channels[0].channel) {
+				return channels[0].channel;
+		  }
 		  confirm = async () => {
 				let response = await client.awaitReply(message, `Did you mean ${channels[0].channel}? (yes/no)`);
 				response = response.toLowerCase();

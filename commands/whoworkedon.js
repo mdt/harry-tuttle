@@ -57,13 +57,13 @@ exports.run = async (client, message, args, _level) => {
 exports.conf = {
   enabled: true,
   guildOnly: true,
-  aliases: ["whosolved","victims"],
+  aliases: ["whosolved","victims","serfs"],
   permLevel: "User"
 };
 
 exports.help = {
   name: "whoworkedon",
-  category: "Miscelaneous",
+  category: "Puzzles",
 	 description: "Tell who worked on a puzzle",
   usage: "whoworkedon [-s min_seconds] puzzle name"
 };

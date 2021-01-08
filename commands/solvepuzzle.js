@@ -1,6 +1,7 @@
 // @ts-check
 const slugify = require("../modules/slugify.js");
 const csfunctions = require("../modules/csfunctions.js");
+require('../modules/channelstats.js')
 
 exports.run = async (client, message, args, _level) => { // eslint-disable-line no-unused-vars
 	 const argSlug = slugify(args.join("-"));
@@ -97,7 +98,7 @@ exports.conf = {
 
 exports.help = {
   name: "solvepuzzle",
-  category: "Miscelaneous",
+  category: "Puzzles",
   description: "Marks a puzzle as solved, and archives the channels",
   usage: "solvepuzzle puzzle name"
 };

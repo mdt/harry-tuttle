@@ -32,7 +32,7 @@ exports.conf = {
 
 exports.help = {
   name: "listpuzzles",
-  category: "Miscelaneous",
+  category: "Puzzles",
 	 description: "Lists all the puzzles.",
   usage: "listpuzzles"
 };

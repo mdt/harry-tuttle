@@ -10,6 +10,7 @@ const { promisify } = require("util");
 const readdir = promisify(require("fs").readdir);
 const Enmap = require("enmap");
 const config = require("./config.js");
+const slugify = require("./modules/slugify.js")
 
 // This is your client. Some people call it `bot`, some people call it `self`,
 // some might call it `cootchie`. Either way, when you see `client.something`,
@@ -80,6 +81,13 @@ const init = async () => {
   // Here we login the client.
   client.login(process.env.DISCORD_API_SECRET);
 
+  // read parent categories to ignore
+  client.ignore_categories = new Set()
+  if (process.env.CHANNEL_IGNORE_CATEGORIES) {
+	 for (const cat of process.env.CHANNEL_IGNORE_CATEGORIES.split(',')) {
+		client.ignore_categories.add(slugify(cat))
+	 }
+  }
 // End top-level async/await function.
 };
 

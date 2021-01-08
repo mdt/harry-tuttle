@@ -7,7 +7,7 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 	 // specify category with option "-c"
 	 // if no category is specified, the puzzle gets created in the 'puzzles' category
 	 // note that categories are purely a convenience feature for puzzle creation; we expect puzzle names to be globally unique.
-	 client.logger.log(`message: ${message} args: ${args}`)
+	 //client.logger.log(`message: ${message} args: ${args}`)
 	 let argv = require('yargs/yargs')(args).argv
 	 const category = (argv.c && argv.c.toLowerCase()) || "puzzles"
 	 
@@ -27,7 +27,7 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 		  puzzleCategory = await message.guild.channels.create(category, { type: "category" })
 	 }
 
-	 if (message.guild.channels.cache.find(c => c.name.toLowerCase() === puzzleName && c.type != 'category')) {
+	 if (message.guild.channels.cache.find(c => slugify(c.name) === puzzleName && c.type != 'category')) {
 		  client.logger.log("Preventing creating of duplicate puzzle ${puzzleName}");
 		  message.channel.send(`Hmm, it looks like there are already puzzle channels for a puzzle called ${puzzleName}. I won't create duplicates.`);
 		  return; 
@@ -58,7 +58,7 @@ exports.conf = {
 
 exports.help = {
   name: "newpuzzle",
-  category: "Miscelaneous",
+  category: "Puzzles",
   description: "Creates channels for a new puzzle",
   usage: "newpuzzle [-c category] puzzle name"
 };

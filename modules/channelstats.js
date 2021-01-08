@@ -7,7 +7,8 @@ class ChannelTime {
 		  // key channels off name because IDs are ephemeral (if a voice channel is deleted then recreated)
 		  // really we want to key everything off puzzle IDs, but we don't have those
 		  // puzzle data
-		  this.db.exec("create table if not exists channels (channel text primary key, category text, solved int DEFAULT 0)");
+		  // status - 0: none, 1: solved, 2: needs aha (lightbulb U+1F4A1), 3: fresh brains (brain U+1F9E0), 4: needs readout (glasses U+1F453), 5: stuck (confounded U+1F616)
+		  this.db.exec("create table if not exists channels (channel text primary key, category text, status int DEFAULT 0)");
 		  this._add_channel = this.db.prepare('INSERT OR IGNORE INTO channels VALUES (?, ?, 0)')
 
 		  // summary statistics - updated whenever a user starts / stops speaking or joins / leaves a channel.
@@ -46,24 +47,33 @@ class ChannelTime {
 	 }
 
 	 get_channels() {
-		  var stmt = this.db.prepare("SELECT channel, category, solved FROM channels ORDER BY category, channel ASC")
+		  var stmt = this.db.prepare("SELECT channel, category, status = 1 AS solved FROM channels ORDER BY category, channel ASC")
+		  return stmt.all()
+	 }
+
+	 channel_status() {
+		  var stmt = this.db.prepare("SELECT channel, category, status FROM channels WHERE status != 1 ORDER BY status DESC, channel ASC")
 		  return stmt.all()
 	 }
 
 	 find_channels(search_str, unsolved_only) {
 		  var stmt
 		  if (unsolved_only) {
-				stmt = this.db.prepare(`SELECT channel FROM channels WHERE channel LIKE '%${search_str}%' AND solved = 0`);
+				stmt = this.db.prepare(`SELECT channel FROM channels WHERE channel LIKE '%${search_str}%' AND status != 1`);
 		  } else {
 				stmt = this.db.prepare(`SELECT channel FROM channels WHERE channel LIKE '%${search_str}%'`);
 		  }
 		  return stmt.all();
 	 }
 
-	 solve_puzzle(channel_name) {
-		  var stmt = this.db.prepare('UPDATE channels SET solved=1 WHERE channel = ?')
-		  const inf = stmt.run(channel_name)
+	 set_status(channel_name, status) {
+		  var stmt = this.db.prepare(`UPDATE channels SET status=${status} WHERE channel='${channel_name}'`);
+		  const inf = stmt.run()
 		  return inf.changes
+	 }
+	 
+	 solve_puzzle(channel_name) {
+		  return this.set_status(channel_name, 1);
 	 }
 	 
 	 get_channel_stats(channel_name, min_seconds = 0) {
