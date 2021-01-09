@@ -3,7 +3,7 @@ module.exports = async client => {
   client.logger.log(`${client.user.tag}, ready to serve ${client.users.cache.size} users in ${client.guilds.cache.size} servers.`, "ready");
 
   // Make the bot "play the game" which is the help command with default prefix.
-  client.user.setActivity(`(type ${client.settings.get("default").prefix}help for help)`, { type: "PLAYING" });
+  client.user.setActivity(`(type ${client.getSettings().prefix}help for help)`, { type: "PLAYING" });
 
 
   const makePuzzleDbSync = require("../modules/puzzledbsync.js");
