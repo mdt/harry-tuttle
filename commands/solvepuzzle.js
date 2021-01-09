@@ -1,10 +1,12 @@
 // @ts-check
 const slugify = require("../modules/slugify.js");
 const csfunctions = require("../modules/csfunctions.js");
+const path = require('path');
 require('../modules/channelstats.js')
 
 exports.run = async (client, message, args, _level) => { // eslint-disable-line no-unused-vars
-	 const argSlug = slugify(args.join("-"));
+	 let argv = require('yargs/yargs')(args).boolean('nocheer').boolean('boo').boolean('raspberry').argv
+	 const argSlug = slugify(argv._.join("-"));
 	 client.logger.log(`Archiving channels for puzzle ${argSlug}`);
 
 	 if (!argSlug) {
@@ -25,6 +27,15 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 		  message.channel.send(`Hmm, I can't find any puzzle channels for a puzzle called ${puzzleName}. Are you sure you've got the right name?`);
 		  return;
 	 }
+
+	 if (argv.nocheer)
+		  return;
+	 else if (argv.boo)
+		  await csfunctions.broadcast_sound(client, message.guild.channels, 'boo.aac');
+	 else if (argv.raspberry)
+		  await csfunctions.broadcast_sound(client, message.guild.channels, 'raspberry.aac');
+	 else
+		  await csfunctions.broadcast_sound(client, message.guild.channels, 'cheer.aac');
 
 	 const dbUpdCount = channelstats.solve_puzzle(puzzleName);
 	 client.logger.log(`Marked ${dbUpdCount} puzzles solved in DB`)
@@ -48,7 +59,7 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 					 if (!solvedCategoryObj) {
 						  solvedCategoryObj = message.guild.channels.cache.find(c => c.type === 'category' && c.name.toLowerCase() === solvedCategory.toLowerCase());
 						  if (!solvedCategoryObj) {
-								solvedCategoryObj = message.guild.channels.create(solvedCategory, { type: "category" })
+								solvedCategoryObj = await message.guild.channels.create(solvedCategory, { type: "category" })
 						  }
 					 }
 					 await c.setParent(solvedCategoryObj);

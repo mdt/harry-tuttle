@@ -84,3 +84,29 @@ const find_puzzle = async (client, message, search_str, unsolved_only, accept_pa
 	 return find_puzzle(client, message, response);
 }
 exports.find_puzzle = find_puzzle;
+
+/*
+play a sound file on all voice channels with >1 human member
+channels = GuildChannelManager
+*/
+exports.broadcast_sound = async (client, channels, soundFilePath) => {
+	 client.logger.log(`Broadcasting sound file ${soundFilePath}`);
+	 for (const c of channels.cache.values()) {
+		  await c.fetch();
+		  client.logger.log(`Channel ${c.name} has ${c.members.size} members`);
+	 }
+	 var channelsToPlay = Array.from(channels.cache.filter(c => (c.type === "voice" && c.members.size > 0)).values())
+	 //const broadcast = client.voice.createBroadcast();
+	 //broadcast.play(soundFilePath)
+	 var connection;
+	 for (const c of channelsToPlay) {
+		  client.logger.log(`Sending ${soundFilePath} to ${c.name}`)
+		  connection = await c.join()
+		  let dispatcher = connection.play(soundFilePath);
+		  dispatcher.on('finish', () => console.log(`Done playing on ${c.name}`));
+		  await new Promise(fulfill => dispatcher.on('finish', fulfill));
+		  dispatcher.destroy();
+	 }
+	 client.logger.log(`Done broadcasting ${soundFilePath}`);
+	 connection.disconnect();
+}

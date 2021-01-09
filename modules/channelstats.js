@@ -56,6 +56,11 @@ class ChannelTime {
 		  return stmt.all()
 	 }
 
+	 check_channel_exists(chan) {
+		  var stmt = this.db.prepare(`SELECT channel FROM channels WHERE channel = '${chan}'`)
+		  return stmt.all().length > 0
+	 }
+	 
 	 find_channels(search_str, unsolved_only) {
 		  var stmt
 		  if (unsolved_only) {

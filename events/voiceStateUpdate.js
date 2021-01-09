@@ -5,6 +5,8 @@ require("../modules/channelstats.js")
 const slugify = require("../modules/slugify.js");
 
 module.exports = async (client, oldState, newState) => {
+	 if (oldState.member && oldState.member.user.isbot) return;
+	 if (newState.member && newState.member.user.isbot) return;
 	 if (oldState.channelID != newState.channelID) {
 		  if (oldState.channelID && !csfunctions.ignore_channel(client, oldState.channel)) {
 				//client.logger.log(`User ${oldState.id} left channel ${oldState.channel.name}`);

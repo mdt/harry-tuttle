@@ -56,24 +56,16 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 	 }
 	 // update status in the db
 	 channelstats.set_status(puzzleName, statusInt);
-	 // rename the puzzle
-	 var channelsToArchive = Array.from(message.guild.channels.cache.filter(c => (slugify(c.name) === puzzleName)).values());
+	 // rename the puzzle, only rename voice channels b/c if channelsToArchive.length > 1, the setName doesn't work for some reason
+	 var channelsToArchive = Array.from(message.guild.channels.cache.filter(c => (slugify(c.name) === puzzleName && c.type === "voice")).values());
 	 if (channelsToArchive.length === 0) {
 		  client.logger.log(`Channels for puzzle ${puzzleName} not found when changing status`);
 		  message.channel.send(`Hmm, I can't find any puzzle channels for a puzzle called ${puzzleName}. Are you sure you've got the right name?`);
 		  return;
 	 }
-
-	 // assume channelsToArchive are all in the same category
-	 let category = channelsToArchive[0].parent
-	 if (category) {
-		  category = category.name
-	 } else {
-		  category = "puzzles"
-	 }
-
+	 client.logger.log(`Setting status for ${channelsToArchive.length} channels`)
 	 for (const c of channelsToArchive) {
-		  c.setName(newPuzzleName);
+		  c.setName(newPuzzleName).then(newChannel => client.logger.log(`Set channel to ${newChannel.name}`));
 	 }
 
 	 message.channel.send(`OK, I set status ${status} for ${puzzleName}`);

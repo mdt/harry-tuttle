@@ -21,16 +21,16 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 		  return;  
 	 }
 
+	 if (channelstats.check_channel_exists(puzzleName) || message.guild.channels.cache.find(c => slugify(c.name) === puzzleName && c.type != 'category')) {
+		  client.logger.log(`Preventing creating of duplicate puzzle ${puzzleName}`);
+		  message.channel.send(`Hmm, it looks like there is already a puzzle called ${puzzleName}. I won't create duplicates.`);
+		  return; 
+	 }
+
 	 let puzzleCategory = message.guild.channels.cache.find(c => c.type === 'category' && c.name.toLowerCase() === category);
 	 if (!puzzleCategory) {
 		  client.logger.log("Creating puzzle category ${category}");
 		  puzzleCategory = await message.guild.channels.create(category, { type: "category" })
-	 }
-
-	 if (message.guild.channels.cache.find(c => slugify(c.name) === puzzleName && c.type != 'category')) {
-		  client.logger.log("Preventing creating of duplicate puzzle ${puzzleName}");
-		  message.channel.send(`Hmm, it looks like there are already puzzle channels for a puzzle called ${puzzleName}. I won't create duplicates.`);
-		  return; 
 	 }
 
 	 try {

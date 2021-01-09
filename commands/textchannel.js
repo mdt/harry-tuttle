@@ -11,12 +11,20 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 		  message.channel.send("You have to tell me the name of the puzzle");
 		  return;
 	 }
+	 
+	 let puzzleName = await csfunctions.find_puzzle(client, message, argSlug, true, false);
+	 if (!puzzleName) {
+		  client.logger.log(`No channels found in DB for ${argSlug}`);
+		  message.channel.send(`Hmm, I can't find any puzzle channels for a puzzle called ${argSlug}. Are you sure you've got the right name?`);
+		  return;
+	 }
+
 	 if (del) {
 		  // delete the channel
-		  var rmChannels = Array.from(message.guild.channels.cache.filter(c => (c.type === "text" && slugify(c.name) === argSlug)).values());
+		  var rmChannels = Array.from(message.guild.channels.cache.filter(c => (c.type === "text" && slugify(c.name) === puzzleName)).values());
 		  if (rmChannels.length === 0) {
 				client.logger.log(`Text channels for puzzle ${puzzleName} not found when deleting`);
-				message.channel.send(`Hmm, I can't find any texdt channels for a puzzle called ${argSlug}. Are you sure you've got the right name?`);
+				message.channel.send(`Hmm, I can't find any text channels for a puzzle called ${argSlug}. Are you sure you've got the right name?`);
 				return;
 		  }
 		  for (const c of rmChannels){
@@ -26,13 +34,6 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 		  return;
 	 }
 	 
-	 let puzzleName = await csfunctions.find_puzzle(client, message, argSlug, true, false);
-	 if (!puzzleName) {
-		  client.logger.log(`No channels found in DB for ${argSlug}`);
-		  message.channel.send(`Hmm, I can't find any puzzle channels for a puzzle called ${argSlug}. Are you sure you've got the right name?`);
-		  return;
-	 }
-
 	 if (message.guild.channels.cache.find(c => slugify(c.name) === puzzleName && c.type == 'text')) {
 		  client.logger.log("Preventing creating of duplicate puzzle ${puzzleName}");
 		  message.channel.send(`Hmm, it looks like there is already a text channel for a puzzle called ${puzzleName}. I won't create duplicates.`);
