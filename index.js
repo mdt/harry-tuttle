@@ -51,8 +51,9 @@ client.aliases = new Enmap();
 // and makes things extremely easy for this purpose.
 client.settings = new Enmap({name: "settings"});
 
-client.google = require("./modules/gapiclient.js")(process.env.GOOGLE_API_CREDENTIALS || client.config.googleApiCredentials, client.logger);
-client.puzzleDb = require("./modules/puzzledb.js")(process.env.GOOGLE_API_CREDENTIALS || client.config.googleApiCredentials, client.logger);
+const googleSecrets = process.env.GOOGLE_API_CREDENTIALS ? JSON.parse(process.env.GOOGLE_API_CREDENTIALS) : client.config.googleApiCredentials;
+client.google = require("./modules/gapiclient.js")(googleSecrets, client.logger);
+client.puzzleDb = require("./modules/puzzledb.js")(googleSecrets, client.logger);
 
 // We're doing real fancy node 8 async/await stuff here, and to do that
 // we need to wrap stuff in an anonymous function. It's annoying but it works.
