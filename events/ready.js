@@ -12,7 +12,7 @@ module.exports = async client => {
   client.puzzleDbSyncs = [];
   guilds.each(g => {
     const puzzleRootFolderId = client.getSettings(g).puzzleRootFolderId;
-    if (puzzleRootFolderId) {
+    if (puzzleRootFolderId && puzzleRootFolderId !== 'replace-me') {
       client.logger.log(`For guild ${g.name} will sync docs from Google Drive folder ${puzzleRootFolderId}`);
       const puzzleDbSync = makePuzzleDbSync(client, puzzleRootFolderId);
       puzzleDbSync.startup();
