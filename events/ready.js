@@ -12,8 +12,8 @@ module.exports = async client => {
   client.puzzleDbSyncs = [];
   guilds.each(g => {
     if (g.id === '763849636729192470') { // HACK! until we have persistent setting storage
-      client.logger.log(`For guild ${g.name} will sync docs from Google Drive folder 1qlzeV5_gnltJdvVy3wCJR9WCn8G1PnC5`);
-      const puzzleDbSync = makePuzzleDbSync(client, '1qlzeV5_gnltJdvVy3wCJR9WCn8G1PnC5');
+      client.logger.log(`For guild ${g.name} will sync docs from Google Drive folder 1gR64xEVR44s709adfknd4uk3Ny45AnQi`);
+      const puzzleDbSync = makePuzzleDbSync(client, '1gR64xEVR44s709adfknd4uk3Ny45AnQi');
       puzzleDbSync.startup();
       client.puzzleDbSyncs.push(puzzleDbSync);
       return;
