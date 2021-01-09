@@ -52,6 +52,7 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 	 let solvedCategory = category + " (SOLVED)"
 	 var solvedCategoryObj;
 
+	 var moveMembers = [];
 	 var textDone = false;
 	 var voiceDone = false;
 	 for (const c of channelsToArchive) {
@@ -72,6 +73,11 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 				}
 		  } else if (c.type === "voice") {
 				try {
+					 var moveMembers = [];
+					 for (const member in c.members.values()) {
+						  moveMembers.push(member.edit({channel: 763849637177720852})); // The Main Room
+					 }
+					 await Promise.all(moveMembers);
 					 client.logger.log(`Deleting voice channel ${c.name}`);
 					 await c.delete();
 					 voiceDone = true;
