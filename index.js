@@ -11,6 +11,7 @@ const readdir = promisify(require("fs").readdir);
 const Enmap = require("enmap");
 
 const config = require("./config.js");
+const slugify = require("./modules/slugify.js")
 var localConfig = {};
 try {
   // Anything in config.js can be overridden in config-local.js which should never be checked in.
@@ -50,11 +51,16 @@ client.aliases = new Enmap();
 // and makes things extremely easy for this purpose.
 client.settings = new Enmap({name: "settings"});
 
+client.google = require("./modules/gapiclient.js")(process.env.GOOGLE_API_CREDENTIALS || client.config.googleApiCredentials, client.logger);
+client.puzzleDb = require("./modules/puzzledb.js")(process.env.GOOGLE_API_CREDENTIALS || client.config.googleApiCredentials, client.logger);
+
 // We're doing real fancy node 8 async/await stuff here, and to do that
 // we need to wrap stuff in an anonymous function. It's annoying but it works.
 
 const init = async () => {
 
+  await client.puzzleDb.connect();
+ 
   // Here we load **commands** into memory, as a collection, so they're accessible
   // here and everywhere else.
   const cmdFiles = await readdir("./commands/");
