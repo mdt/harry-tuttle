@@ -8,6 +8,9 @@ config.json
 data/
 test.js
 
+# Local configuration overrides
+config-local.js
+
 # Runtime data
 pids
 *.pid

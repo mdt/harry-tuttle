@@ -9,7 +9,7 @@ const config = {
   "support": [],
 
   // Your Bot's Token. Available on https://discord.com/developers/applications/me
-  "token": "REPLACE ME",
+  "token": "NEVER CHECK ME INTO SOURCE CONTROL",
 
   // Intents the bot needs.
   // By default GuideBot needs Guilds, Guild Messages and Direct Messages to work.

@@ -9,6 +9,8 @@ const defaultSettings = {
   "modLogChannel": "mod-log",
   "modRole": "Moderator",
   "adminRole": "Administrator",
+  "puzzleRootFolderId": "",
+  "puzzleDbDocId": "",
   "systemNotice": "true",
   "welcomeChannel": "welcome",
   "welcomeMessage": "Say hello to {{user}}, everyone! We all need a warm welcome sometimes :D",
