@@ -44,12 +44,12 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 
 	 // assume channelsToArchive are all in the same category
 	 let category = channelsToArchive[0].parent
+	 let solvedCateogry;
 	 if (category) {
-		  category = category.name
+		  solvedCategory = category.name + " (SOLVED)";
 	 } else {
-		  category = "puzzles"
+		  solvedCategory = "archived";
 	 }
-	 let solvedCategory = category + " (SOLVED)"
 	 var solvedCategoryObj;
 
 	 var moveMembers = [];
@@ -93,6 +93,12 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 		  csfunctions.sort_category(client, message.guild.channels, solvedCategoryObj);
 	 }
 
+	 // if category is now empty, delete it
+	 if (category.children.size == 0) {
+		  client.logger.log(`Deleting category ${category.name}, it's empty`);
+		  category.delete()
+	 }
+
 	 client.logger.log('Done');
 	 var doneMessage = "OK, I";
 	 if (voiceDone) {
@@ -111,7 +117,7 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 exports.conf = {
   enabled: true,
   guildOnly: true,
-  aliases: [],
+  aliases: ["solved"],
   permLevel: "User"
 };
 

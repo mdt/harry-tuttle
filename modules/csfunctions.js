@@ -93,7 +93,6 @@ exports.broadcast_sound = async (client, channels, soundFilePath) => {
 	 client.logger.log(`Broadcasting sound file ${soundFilePath}`);
 	 for (const c of channels.cache.values()) {
 		  await c.fetch();
-		  client.logger.log(`Channel ${c.name} has ${c.members.size} members`);
 	 }
 	 var channelsToPlay = Array.from(channels.cache.filter(c => (c.type === "voice" && c.members.size > 0)).values())
 	 //const broadcast = client.voice.createBroadcast();
@@ -103,10 +102,11 @@ exports.broadcast_sound = async (client, channels, soundFilePath) => {
 		  client.logger.log(`Sending ${soundFilePath} to ${c.name}`)
 		  connection = await c.join()
 		  let dispatcher = connection.play(soundFilePath);
-		  dispatcher.on('finish', () => console.log(`Done playing on ${c.name}`));
 		  await new Promise(fulfill => dispatcher.on('finish', fulfill));
 		  dispatcher.destroy();
 	 }
 	 client.logger.log(`Done broadcasting ${soundFilePath}`);
-	 connection.disconnect();
+	 if (connection) {
+		  connection.disconnect();
+	 }
 }
