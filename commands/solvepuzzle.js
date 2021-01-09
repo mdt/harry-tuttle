@@ -28,14 +28,16 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 		  return;
 	 }
 
-	 if (argv.nocheer)
-		  return;
-	 else if (argv.boo)
-		  await csfunctions.broadcast_sound(client, message.guild.channels, 'boo.aac');
-	 else if (argv.raspberry)
-		  await csfunctions.broadcast_sound(client, message.guild.channels, 'raspberry.aac');
-	 else
-		  await csfunctions.broadcast_sound(client, message.guild.channels, 'cheer.aac');
+	 if (!argv.nocheer)
+	 {
+		  message.channel.send(`Great job solving ${puzzleName}! Please wait while I broadcast some cheering...`)
+		  if (argv.boo)
+				await csfunctions.broadcast_sound(client, message.guild.channels, 'boo.aac');
+		  else if (argv.raspberry)
+				await csfunctions.broadcast_sound(client, message.guild.channels, 'raspberry.aac');
+		  else
+				await csfunctions.broadcast_sound(client, message.guild.channels, 'cheer.aac');
+	 }
 
 	 const dbUpdCount = channelstats.solve_puzzle(puzzleName);
 	 client.logger.log(`Marked ${dbUpdCount} puzzles solved in DB`)
