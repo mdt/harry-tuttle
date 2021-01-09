@@ -9,8 +9,15 @@ const Discord = require("discord.js");
 const { promisify } = require("util");
 const readdir = promisify(require("fs").readdir);
 const Enmap = require("enmap");
+
 const config = require("./config.js");
-const slugify = require("./modules/slugify.js")
+var localConfig = {};
+try {
+  // Anything in config.js can be overridden in config-local.js which should never be checked in.
+  localConfig = require("./config-local.js");
+} catch (e) {
+  // No local config is just fine
+}
 
 // This is your client. Some people call it `bot`, some people call it `self`,
 // some might call it `cootchie`. Either way, when you see `client.something`,
@@ -22,7 +29,7 @@ const client = new Discord.Client({
 });
 
 // Here we load the config file that contains our token and our prefix values.
-client.config = config
+client.config = {...config, ...localConfig};
 // client.config.token contains the bot's token
 // client.config.prefix contains the message prefix
 
@@ -79,8 +86,6 @@ const init = async () => {
   }
 
   // Here we login the client.
-  client.login(process.env.DISCORD_API_SECRET);
-
   // read parent categories to ignore
   client.ignore_categories = new Set()
   if (process.env.CHANNEL_IGNORE_CATEGORIES) {
@@ -88,7 +93,9 @@ const init = async () => {
 		client.ignore_categories.add(slugify(cat))
 	 }
   }
-// End top-level async/await function.
+  client.login(process.env.DISCORD_API_SECRET || client.config.token);
+
+  // End top-level async/await function.
 };
 
 init();

@@ -1,4 +1,3 @@
-// @ts-check
 const slugify = require("../modules/slugify.js");
 const csfunctions = require("../modules/csfunctions.js");
 require("../modules/channelstats.js");
