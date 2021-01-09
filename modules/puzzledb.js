@@ -17,6 +17,7 @@ module.exports = (googleCredentials, logger) => {
 
   module.connect = async () => {
     try {
+      logger.log(`Connecting to Puzzle DB as ${googleCredentials.client_email}`);
       await doc.useServiceAccountAuth(googleCredentials);
       await doc.loadInfo();
       puzzleSheet = doc.sheetsByTitle[puzzleSheetTitle];
