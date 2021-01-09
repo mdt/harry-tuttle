@@ -11,6 +11,13 @@ module.exports = async client => {
   var guilds = client.guilds.cache;
   client.puzzleDbSyncs = [];
   guilds.each(g => {
+    if (g.id === '763849636729192470') { // HACK! until we have persistent setting storage
+      client.logger.log(`For guild ${g.name} will sync docs from Google Drive folder 1qlzeV5_gnltJdvVy3wCJR9WCn8G1PnC5`);
+      client.guildContext[g.id].puzzleDbSync = makePuzzleDbSync(client, '1qlzeV5_gnltJdvVy3wCJR9WCn8G1PnC5');
+      puzzleDbSync.startup();
+      client.puzzleDbSyncs.push(puzzleDbSync);
+      return;
+    }
     const puzzleRootFolderId = client.getSettings(g).puzzleRootFolderId;
     if (puzzleRootFolderId && puzzleRootFolderId !== 'replace-me') {
       client.logger.log(`For guild ${g.name} will sync docs from Google Drive folder ${puzzleRootFolderId}`);
@@ -19,5 +26,4 @@ module.exports = async client => {
       client.puzzleDbSyncs.push(puzzleDbSync);
     }
   });
-
 };
