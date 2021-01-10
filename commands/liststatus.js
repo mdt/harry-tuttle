@@ -22,10 +22,13 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 				st = "Fresh brains";
 				break;
 		  case 4:
-				st = "Needs readout";
+				st = "STDP!";
 				break;
 		  case 5:
 				st = "Stuck";
+				break;
+		  case 6:
+				st = "Parallelize";
 				break;
 		  }
 		  if (status != st) {

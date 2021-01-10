@@ -7,9 +7,10 @@ class ChannelTime {
 		  // key channels off name because IDs are ephemeral (if a voice channel is deleted then recreated)
 		  // really we want to key everything off puzzle IDs, but we don't have those
 		  // puzzle data
-		  // status - 0: none, 1: solved, 2: needs aha (lightbulb U+1F4A1), 3: fresh brains (brain U+1F9E0), 4: needs readout (glasses U+1F453), 5: stuck (confounded U+1F616)
+		  // status - 0: none, 1: solved, 2: needs aha (lightbulb U+1F4A1), 3: fresh brains (brain U+1F9E0), 4: stdp (cursing U+1F92C), 5: stuck (confounded U+1F616), 6: parallelize (family U+1F46A)
 		  this.db.exec("create table if not exists channels (channel text primary key, category text, status int DEFAULT 0)");
 		  this._add_channel = this.db.prepare('INSERT OR IGNORE INTO channels VALUES (?, ?, 0)')
+		  this._create_channel = this.db.prepare('INSERT OR REPLACE INTO channels VALUES (?, ?, 0)')
 
 		  // summary statistics - updated whenever a user starts / stops speaking or joins / leaves a channel.
 		  this.db.exec("create table if not exists channel_stats (channel text, uid unsigned big int, joined_seconds real DEFAULT 0, speaking_seconds real DEFAULT 0, last_seen integer, PRIMARY KEY (channel, uid))")
@@ -19,6 +20,7 @@ class ChannelTime {
 
 		  // prepare statements
 		  this._get_current_channel = this.db.prepare('SELECT channel, joined_time, last_state_time, speaking FROM current_channel WHERE uid = ?')
+		  this._get_channel = this.db.prepare('SELECT channel, category, status FROM channels WHERE channel = ?')
 		  this._insert_current_channel = this.db.prepare('INSERT OR REPLACE INTO current_channel VALUES (?, ?, ?, ?, 0)')
 		  this._update_current_channel = this.db.prepare('UPDATE current_channel SET last_state_time = ?, speaking = ? WHERE uid = ?')
 		  this._delete_current_channel = this.db.prepare('DELETE FROM current_channel WHERE uid = ?')
@@ -57,8 +59,13 @@ class ChannelTime {
 	 }
 
 	 check_channel_exists(chan) {
-		  var stmt = this.db.prepare(`SELECT channel FROM channels WHERE channel = '${chan}'`)
-		  return stmt.all().length > 0
+		  var result = this._get_channel.all(chan);
+		  return result.length > 0
+	 }
+
+	 channel_details(chan) {
+		  var result = this._get_channel.all(chan);
+		  return result[0];
 	 }
 	 
 	 find_channels(search_str, unsolved_only) {
@@ -129,7 +136,7 @@ class ChannelTime {
 
 	 on_channel_create(channelName, category) {
 		  // called when bot creates a new channel, not really necessary as we pick up the channel automatically when anyone joins
-		  this._add_channel.run(channelName, category);
+		  this._create_channel.run(channelName, category);
 	 }
 	 
 	 on_channel_join(uid, channelName, category = undefined) {

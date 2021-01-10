@@ -78,6 +78,8 @@ const find_puzzle = async (client, message, search_str, unsolved_only, accept_pa
 	 // prompt the user to pick a channel
 	 prompt = `I found these puzzles matching ${search_str}, which one do you mean?`;
 	 for (const c of channels) {
+		  if (c.channel === search_str)
+				return c.channel;
 		  prompt += `\n${c.channel}`;
 	 }
 	 const response = slugify(await client.awaitReply(message, prompt));
@@ -108,5 +110,28 @@ exports.broadcast_sound = async (client, channels, soundFilePath) => {
 	 client.logger.log(`Done broadcasting ${soundFilePath}`);
 	 if (connection) {
 		  connection.disconnect();
+	 }
+}
+
+exports.delete_channel = async (channel) => {
+	 let category = channel.parent	 
+
+	 var moveMembers = [];
+	 for (const member in channel.members.values()) {
+		  moveMembers.push(member.edit({channel: 763849637177720852})); // The Main Room
+	 }
+	 await Promise.all(moveMembers);
+	 
+	 // when all the members get moved, the category gets deleted!
+	 if (!channel.deleted)
+	 {
+		  console.log(`Deleting voice channel ${channel.name}`);
+		  await channel.delete()
+
+		  // if category is now empty, delete it
+		  if (category.children.size == 0) {
+				console.log(`Deleting category ${category.name}, it's empty`);
+				category.delete()
+		  }
 	 }
 }

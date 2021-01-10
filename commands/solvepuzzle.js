@@ -5,7 +5,7 @@ const path = require('path');
 require('../modules/channelstats.js')
 
 exports.run = async (client, message, args, _level) => { // eslint-disable-line no-unused-vars
-	 let argv = require('yargs/yargs')(args).boolean('nocheer').boolean('boo').boolean('raspberry').argv
+	 let argv = require('yargs/yargs')(args).help(false).version(false).exitProcess(false).boolean('nocheer').boolean('boo').boolean('raspberry').argv
 	 const argSlug = slugify(argv._.join("-"));
 	 client.logger.log(`Archiving channels for puzzle ${argSlug}`);
 
@@ -52,7 +52,6 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 	 }
 	 var solvedCategoryObj;
 
-	 var moveMembers = [];
 	 var textDone = false;
 	 var voiceDone = false;
 	 for (const c of channelsToArchive) {
@@ -73,13 +72,12 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 				}
 		  } else if (c.type === "voice") {
 				try {
-					 var moveMembers = [];
-					 for (const member in c.members.values()) {
-						  moveMembers.push(member.edit({channel: 763849637177720852})); // The Main Room
+					 // force delete after 5 minutes, otherwise voiceStateUpdate deletes when last user leaves
+					 if (c.members.size === 0) {
+						  csfunctions.delete_channel(c);
+					 } else {
+						  setTimeout((channel) => { if (!channel.deleted) csfunctions.delete_channel(channel); }, 300000, c);
 					 }
-					 await Promise.all(moveMembers);
-					 client.logger.log(`Deleting voice channel ${c.name}`);
-					 await c.delete();
 					 voiceDone = true;
 				} catch (e) {
 					 message.channel.send("Hmm, something went wrong. Maybe check the log?");
@@ -93,16 +91,10 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 		  csfunctions.sort_category(client, message.guild.channels, solvedCategoryObj);
 	 }
 
-	 // if category is now empty, delete it
-	 if (category.children.size == 0) {
-		  client.logger.log(`Deleting category ${category.name}, it's empty`);
-		  category.delete()
-	 }
-
 	 client.logger.log('Done');
 	 var doneMessage = "OK, I";
 	 if (voiceDone) {
-		  doneMessage += " deleted the voice channel";
+		  doneMessage += " scheduled the voice channel for deletion";
 	 }
 	 if (textDone && voiceDone) {
 		  doneMessage += ", and I";
@@ -125,5 +117,5 @@ exports.help = {
   name: "solvepuzzle",
   category: "Puzzles",
   description: "Marks a puzzle as solved, and archives the channels",
-  usage: "solvepuzzle puzzle name"
+  usage: "solvepuzzle [--nocheer | --boo | --raspberry ] puzzle name"
 };

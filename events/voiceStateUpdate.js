@@ -5,19 +5,23 @@ require("../modules/channelstats.js")
 const slugify = require("../modules/slugify.js");
 
 module.exports = async (client, oldState, newState) => {
-	 if (oldState.member && oldState.member.user.isbot) return;
-	 if (newState.member && newState.member.user.isbot) return;
 	 if (oldState.channelID != newState.channelID) {
 		  if (oldState.channelID && !csfunctions.ignore_channel(client, oldState.channel)) {
-				//client.logger.log(`User ${oldState.id} left channel ${oldState.channel.name}`);
-				channelstats.on_channel_leave(oldState.id, slugify(oldState.channel.name))
+				let oldName = slugify(oldState.channel.name);
+				if (oldState.member && !oldState.member.user.bot)
+					 channelstats.on_channel_leave(oldState.id, oldName);
+				if (oldState.channel.members.size === 0 && channelstats.channel_details(oldName).status === 1) {
+					 csfunctions.delete_channel(oldState.channel);
+				}
 		  }
 		  if (newState.channelID && !csfunctions.ignore_channel(client, newState.channel)) {
-				client.logger.log(`User ${newState.id} joined channel ${newState.channel.name}`);
-				if (newState.channel.parent) {
-					 channelstats.on_channel_join(newState.id, slugify(newState.channel.name), slugify(newState.channel.parent.name))
-				} else {
-					 channelstats.on_channel_join(newState.id, slugify(newState.channel.name))
+				if (newState.member && !newState.member.user.bot)
+				{
+					 if (newState.channel.parent) {
+						  channelstats.on_channel_join(newState.id, slugify(newState.channel.name), slugify(newState.channel.parent.name))
+					 } else {
+						  channelstats.on_channel_join(newState.id, slugify(newState.channel.name))
+					 }
 				}
 		  }
 	 }

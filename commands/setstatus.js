@@ -4,16 +4,16 @@ const csfunctions = require("../modules/csfunctions.js")
 require('../modules/channelstats.js')
 
 exports.run = async (client, message, args, _level) => { // eslint-disable-line no-unused-vars
-	 let argv = require('yargs/yargs')(args).argv
+	 let argv = require('yargs/yargs')(args).help(false).version(false).exitProcess(false).argv
 	 const status = argv.s
 	 if (!status) {
-		  message.channel.send("You have to tell me what status to set the puzzle to, like this: 'setstatus -s aha|brains|readout|stuck|none Puzzle Name")
+		  message.channel.send("You have to tell me what status to set the puzzle to, like this: 'setstatus -s aha|brains|parallelize|stdp|stuck|none Puzzle Name")
 		  return;
 	 }
 		  
 	 const argSlug = slugify(argv._.join("-"));
 	 if (!argSlug) {
-		  message.channel.send("You have to tell me the name of the puzzle like this: 'setstatus -s aha|brains|readout|stuck|none Puzzle Name")
+		  message.channel.send("You have to tell me the name of the puzzle like this: 'setstatus -s aha|brains|parallelize|stdp|stuck|none Puzzle Name")
 		  return;
 	 }
 
@@ -41,18 +41,25 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 		  newPuzzleName = `\u{1F9E0} ${puzzleName}`
 		  statusInt = 3;
 		  break;
-	 case "readout":
-		  newPuzzleName = `\u{1F453} ${puzzleName}`
+	 case "stdp":
+		  newPuzzleName = `\u{1F92C} ${puzzleName}`
 		  statusInt = 4;
 		  break;
 	 case "stuck":
 		  newPuzzleName = `\u{1F616} ${puzzleName}`
 		  statusInt = 5;
 		  break;
+	 case "parallelize":
+		  newPuzzleName = `\u{1F46A} ${puzzleName}`
+		  statusInt = 6;
+		  break;
 	 case "none":
 		  newPuzzleName = puzzleName;
 		  statusInt = 0;
 		  break;
+	 default:
+		  message.channel.send(`I don't know about status ${status}, use one of aha|brains|parallelize|stdp|stuck|none`);
+		  return;
 	 }
 	 // update status in the db
 	 channelstats.set_status(puzzleName, statusInt);
@@ -82,5 +89,5 @@ exports.help = {
   name: "setstatus",
   category: "Puzzles",
 	 description: "Set puzzle status",
-  usage: "setstatus -s aha|brains|readout|stuck|none puzzle name"
+  usage: "setstatus -s aha|brains|parallelize|stdp|stuck|none puzzle name"
 };

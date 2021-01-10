@@ -7,7 +7,7 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 	 // if no category is specified, the puzzle gets created in the 'puzzles' category
 	 // note that categories are purely a convenience feature for puzzle creation; we expect puzzle names to be globally unique.
 	 //client.logger.log(`message: ${message} args: ${args}`)
-	 let argv = require('yargs/yargs')(args).argv
+	 let argv = require('yargs/yargs')(args).help(false).version(false).exitProcess(false).argv
 	 const category = (argv.c && argv.c.toLowerCase()) || "puzzles"
 	 
 	 // discord allows unicode in channel names, but no whitespace or some special characters. this seems to be undocumented so we'll just be aggressive about pruning
@@ -20,7 +20,7 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 		  return;  
 	 }
 
-	 if (channelstats.check_channel_exists(puzzleName) || message.guild.channels.cache.find(c => slugify(c.name) === puzzleName && c.type != 'category')) {
+	 if (message.guild.channels.cache.find(c => slugify(c.name) === puzzleName && c.type != 'category')) {
 		  client.logger.log(`Preventing creating of duplicate puzzle ${puzzleName}`);
 		  message.channel.send(`Hmm, it looks like there is already a puzzle called ${puzzleName}. I won't create duplicates.`);
 		  return; 

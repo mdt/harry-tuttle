@@ -3,7 +3,7 @@ const csfunctions = require("../modules/csfunctions.js");
 require('../modules/channelstats.js');
 
 exports.run = async (client, message, args, _level) => { // eslint-disable-line no-unused-vars
-	 let argv = require('yargs/yargs')(args).boolean('d').argv
+	 let argv = require('yargs/yargs')(args).help(false).version(false).exitProcess(false).boolean('d').argv
 	 const del = argv.d
 		  
 	 const argSlug = slugify(argv._.join("-"));
