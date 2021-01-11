@@ -1,3 +1,6 @@
+const makePuzzleDb = require("../modules/puzzledb.js");
+const makePuzzleDbSync = require("../modules/puzzledbsync.js");
+
 module.exports = async client => {
   // Log that the bot is online.
   client.logger.log(`${client.user.tag}, ready to serve ${client.users.cache.size} users in ${client.guilds.cache.size} servers.`, "ready");
@@ -5,25 +8,23 @@ module.exports = async client => {
   // Make the bot "play the game" which is the help command with default prefix.
   client.user.setActivity(`(type ${client.getSettings().prefix}help for help)`, { type: "PLAYING" });
 
+  const googleSecrets = process.env.GOOGLE_API_CREDENTIALS ? JSON.parse(process.env.GOOGLE_API_CREDENTIALS) : client.config.googleApiCredentials;
+  const guilds = client.guilds.cache;
+  guilds.each(async g => {
+    const puzzleDbDocId = client.getSettings(g).puzzleDbDocId;
+    if (puzzleDbDocId && puzzleDbDocId.length > 20) {
+      client.logger.log(`For guild ${g.name} Puzzle DB doc is ${puzzleDbDocId}`);
+      const puzzleDb = makePuzzleDb(puzzleDbDocId, googleSecrets, client.logger);
+      await puzzleDb.connect();
+      client.puzzleDbs[g.id] = puzzleDb;
 
-  const makePuzzleDbSync = require("../modules/puzzledbsync.js");
-
-  var guilds = client.guilds.cache;
-  client.puzzleDbSyncs = [];
-  guilds.each(g => {
-    if (g.id === '763849636729192470') { // HACK! until we have persistent setting storage
-      client.logger.log(`For guild ${g.name} will sync docs from Google Drive folder 1gR64xEVR44s709adfknd4uk3Ny45AnQi`);
-      const puzzleDbSync = makePuzzleDbSync(client, '1gR64xEVR44s709adfknd4uk3Ny45AnQi');
-      puzzleDbSync.startup();
-      client.puzzleDbSyncs.push(puzzleDbSync);
-      return;
-    }
-    const puzzleRootFolderId = client.getSettings(g).puzzleRootFolderId;
-    if (puzzleRootFolderId && puzzleRootFolderId !== 'replace-me') {
-      client.logger.log(`For guild ${g.name} will sync docs from Google Drive folder ${puzzleRootFolderId}`);
-      const puzzleDbSync = makePuzzleDbSync(client, puzzleRootFolderId);
-      puzzleDbSync.startup();
-      client.puzzleDbSyncs.push(puzzleDbSync);
+      const puzzleRootFolderId = client.getSettings(g).puzzleRootFolderId;
+      if (puzzleRootFolderId && puzzleRootFolderId.length > 20) {
+        client.logger.log(`For guild ${g.name} will sync docs from Google Drive folder ${puzzleRootFolderId}`);
+        const puzzleDbSync = makePuzzleDbSync(client, puzzleRootFolderId, puzzleDb);
+        puzzleDbSync.startup();
+        client.puzzleDbSyncs[g.id] = puzzleDbSync;
+      }
     }
   });
 };

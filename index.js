@@ -9,6 +9,7 @@ const Discord = require("discord.js");
 const { promisify } = require("util");
 const readdir = promisify(require("fs").readdir);
 const Enmap = require("enmap");
+const path = require('path');
 
 const config = require("./config.js");
 const slugify = require("./modules/slugify.js")
@@ -49,19 +50,19 @@ client.aliases = new Enmap();
 // Now we integrate the use of Evie's awesome EnMap module, which
 // essentially saves a collection to disk. This is great for per-server configs,
 // and makes things extremely easy for this purpose.
-client.settings = new Enmap({name: "settings"});
+const dataDir = process.env.PERSISTENT_FILE_PATH || path.join('.', 'data');
+client.settings = new Enmap({ name: "settings", dataDir: dataDir });
 
 const googleSecrets = process.env.GOOGLE_API_CREDENTIALS ? JSON.parse(process.env.GOOGLE_API_CREDENTIALS) : client.config.googleApiCredentials;
 client.google = require("./modules/gapiclient.js")(googleSecrets, client.logger);
-client.puzzleDb = require("./modules/puzzledb.js")(googleSecrets, client.logger);
+client.puzzleDbs = {};
+client.puzzleDbSyncs = {};
 
 // We're doing real fancy node 8 async/await stuff here, and to do that
 // we need to wrap stuff in an anonymous function. It's annoying but it works.
 
 const init = async () => {
 
-  await client.puzzleDb.connect();
- 
   // Here we load **commands** into memory, as a collection, so they're accessible
   // here and everywhere else.
   const cmdFiles = await readdir("./commands/");
