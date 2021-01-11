@@ -91,19 +91,19 @@ exports.find_puzzle = find_puzzle;
 play a sound file on all voice channels with >1 human member
 channels = GuildChannelManager
 */
+const fs = require('fs');
+const { Readable } = require('stream');
 exports.broadcast_sound = async (client, channels, soundFilePath) => {
 	 client.logger.log(`Broadcasting sound file ${soundFilePath}`);
-	 for (const c of channels.cache.values()) {
-		  await c.fetch();
-	 }
+	 // ideally we would read the file once and broadcast it, but this doesn't work for some reason
+	 //var buffer = fs.readFileSync(soundFilePath);
 	 var channelsToPlay = Array.from(channels.cache.filter(c => (c.type === "voice" && c.members.size > 0)).values())
-	 //const broadcast = client.voice.createBroadcast();
-	 //broadcast.play(soundFilePath)
 	 var connection;
 	 for (const c of channelsToPlay) {
 		  client.logger.log(`Sending ${soundFilePath} to ${c.name}`)
 		  connection = await c.join()
-		  let dispatcher = connection.play(soundFilePath);
+		  //let dispatcher = connection.play(Readable.from(buffer.toString()), {type: 'ogg/opus'});
+		  let dispatcher = connection.play(fs.createReadStream(soundFilePath), {type: 'ogg/opus'});
 		  await new Promise(fulfill => dispatcher.on('finish', fulfill));
 		  dispatcher.destroy();
 	 }

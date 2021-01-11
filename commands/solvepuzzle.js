@@ -4,8 +4,17 @@ const csfunctions = require("../modules/csfunctions.js");
 const path = require('path');
 require('../modules/channelstats.js')
 
+var soundfiles = {};
+const cheertypes = ['cheer','raspberry','boo','womp'];
+
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
+}
+
 exports.run = async (client, message, args, _level) => { // eslint-disable-line no-unused-vars
-	 let argv = require('yargs/yargs')(args).help(false).version(false).exitProcess(false).boolean('nocheer').boolean('boo').boolean('raspberry').argv
+	 let argv = require('yargs/yargs')(args).help(false).version(false).exitProcess(false).boolean('nocheer').boolean(cheertypes).argv
 	 const argSlug = slugify(argv._.join("-"));
 	 client.logger.log(`Archiving channels for puzzle ${argSlug}`);
 
@@ -30,13 +39,19 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 
 	 if (!argv.nocheer)
 	 {
-		  message.channel.send(`Great job solving ${puzzleName}! Please wait while I broadcast some cheering...`)
-		  if (argv.boo)
-				await csfunctions.broadcast_sound(client, message.guild.channels, 'boo.aac');
-		  else if (argv.raspberry)
-				await csfunctions.broadcast_sound(client, message.guild.channels, 'raspberry.aac');
+		  //message.channel.send(`Great job solving ${puzzleName}! Please wait while I broadcast some cheering...`)
+		  let soundFile;
+		  if (argv.boo && soundfiles['boo'].length)
+				soundFile = soundfiles['boo'][getRandomInt(0, soundfiles['boo'].length)]
+		  else if (argv.raspberry && soundfiles['raspberry'].length)
+				soundFile = soundfiles['raspberry'][getRandomInt(0, soundfiles['raspberry'].length)]
+		  else if (argv.womp && soundfiles['womp'].length)
+				soundFile = soundfiles['womp'][getRandomInt(0, soundfiles['womp'].length)]
 		  else
-				await csfunctions.broadcast_sound(client, message.guild.channels, 'cheer.aac');
+				soundFile = soundfiles['cheer'][getRandomInt(0, soundfiles['cheer'].length)]
+
+		  if (soundFile)
+				csfunctions.broadcast_sound(client, message.guild.channels, soundFile);
 	 }
 
 	 const dbUpdCount = channelstats.solve_puzzle(puzzleName);
@@ -92,7 +107,7 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 	 }
 
 	 client.logger.log('Done');
-	 var doneMessage = "OK, I";
+	 var doneMessage = `Great job solving ${puzzleName}! I`;
 	 if (voiceDone) {
 		  doneMessage += " scheduled the voice channel for deletion";
 	 }
@@ -102,7 +117,7 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 	 if (textDone) {
 		  doneMessage += " archived the text channel"
 	 }
-	 doneMessage += ` for ${puzzleName}.`;
+	 doneMessage += '.';
 	 message.channel.send(doneMessage);
 };
 
@@ -117,5 +132,24 @@ exports.help = {
   name: "solvepuzzle",
   category: "Puzzles",
   description: "Marks a puzzle as solved, and archives the channels",
-  usage: "solvepuzzle [--nocheer | --boo | --raspberry ] puzzle name"
+  usage: "solvepuzzle [--nocheer | --boo | --raspberry | --womp] puzzle name"
 };
+
+// populate soundfiles from filesystem
+const fs = require('fs');
+//module.startup = () => {
+	 for (const audio_dir of cheertypes) {
+		  let arr = [];
+		  fs.readdirSync(path.join('audio', audio_dir), { withFileTypes: true }).forEach(dirEnt => {
+				if (dirEnt.isFile() && dirEnt.name.slice(-5) === ".opus") {
+					 arr.push(path.join('audio', audio_dir, dirEnt.name));
+				}
+		  })
+		  soundfiles[audio_dir] = arr;
+		  if (arr.length === 0) {
+				console.log(`[WARN] no .opus files found for audio ${audio_dir}`);
+		  } else {
+				console.log(`Loaded ${arr.length} files for audio ${audio_dir}`);
+		  }
+	 }
+//}
