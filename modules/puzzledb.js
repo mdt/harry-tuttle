@@ -1,5 +1,4 @@
-module.exports = (googleCredentials, logger) => {
-  const docId = '1tREaPWvNtEJNlf0VwA4rcoSP_nCtVp8t7QBQ6O3Ez_o';
+module.exports = (docId, googleCredentials, logger) => {
   const puzzleSheetTitle = 'Puzzles';
   const folderSheetTitle = 'Folders';
   const { GoogleSpreadsheet } = require('google-spreadsheet');
@@ -17,7 +16,7 @@ module.exports = (googleCredentials, logger) => {
 
   module.connect = async () => {
     try {
-      logger.log(`Connecting to Puzzle DB as ${googleCredentials.client_email}`);
+      logger.log(`Connecting to Puzzle DB ${docId} as ${googleCredentials.client_email}`);
       await doc.useServiceAccountAuth(googleCredentials);
       await doc.loadInfo();
       puzzleSheet = doc.sheetsByTitle[puzzleSheetTitle];

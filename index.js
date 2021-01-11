@@ -55,15 +55,14 @@ client.settings = new Enmap({ name: "settings", dataDir: dataDir });
 
 const googleSecrets = process.env.GOOGLE_API_CREDENTIALS ? JSON.parse(process.env.GOOGLE_API_CREDENTIALS) : client.config.googleApiCredentials;
 client.google = require("./modules/gapiclient.js")(googleSecrets, client.logger);
-client.puzzleDb = require("./modules/puzzledb.js")(googleSecrets, client.logger);
+client.puzzleDbs = {};
+client.puzzleDbSyncs = {};
 
 // We're doing real fancy node 8 async/await stuff here, and to do that
 // we need to wrap stuff in an anonymous function. It's annoying but it works.
 
 const init = async () => {
 
-  await client.puzzleDb.connect();
- 
   // Here we load **commands** into memory, as a collection, so they're accessible
   // here and everywhere else.
   const cmdFiles = await readdir("./commands/");

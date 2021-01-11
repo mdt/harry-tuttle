@@ -1,6 +1,6 @@
 const slugify = require("../modules/slugify.js");
 
-module.exports = (client, puzzleRootFolderId) => {
+module.exports = (client, puzzleRootFolderId, puzzleDb) => {
   let gdrive = require("./gdriveclient.js")(client.google, client.logger);
   let module = {};
 
@@ -26,13 +26,13 @@ module.exports = (client, puzzleRootFolderId) => {
 
   async function syncSheetsToDb() {
     client.logger.log(`Syncing sheets in folder "${puzzleRootFolderId}" to Puzzle DB`);
-    let dbPuzzles = await client.puzzleDb.allPuzzles();
+    let dbPuzzles = await puzzleDb.allPuzzles();
     let dbPuzzlesBySpreadsheetFileId = dbPuzzles.reduce((map, puzzle) => {
       map[puzzle.spreadsheetFileId] = puzzle;
       return map;
     }, {});
 
-    let dbFolders = await client.puzzleDb.allFolders();
+    let dbFolders = await puzzleDb.allFolders();
     let dbFoldersByFileId = dbFolders.reduce((map, folder) => {
       map[folder.fileId] = folder;
       return map;
@@ -114,31 +114,31 @@ module.exports = (client, puzzleRootFolderId) => {
     }
 
     if (foldersToUpdate.length) {
-      await client.puzzleDb.updateFolders(foldersToUpdate);
+      await puzzleDb.updateFolders(foldersToUpdate);
     }
 
     if (newFolders.length) {
-      await client.puzzleDb.addFolders(newFolders);
+      await puzzleDb.addFolders(newFolders);
     }
 
     for (var deletedFolderId in dbFoldersByFileId) {
       let deletedFolder = dbFoldersByFileId[deletedFolderId];
       client.logger.log(`Deleting folder ${deletedFolder.folderName} with file id ${deletedFolder.fileId}`);
-      await client.puzzleDb.deleteFolder(deletedFolder);
+      await puzzleDb.deleteFolder(deletedFolder);
     }
 
     if (puzzlesToUpdate.length) {
-      await client.puzzleDb.updatePuzzles(puzzlesToUpdate);
+      await puzzleDb.updatePuzzles(puzzlesToUpdate);
     }
 
     if (newPuzzles.length) {
-      await client.puzzleDb.addPuzzles(newPuzzles);
+      await puzzleDb.addPuzzles(newPuzzles);
     }
 
     for (var deletedPuzzleId in dbPuzzlesBySpreadsheetFileId) {
       let deletedPuzzle = dbPuzzlesBySpreadsheetFileId[deletedPuzzleId];
       client.logger.log(`Deleting puzzle ${deletedPuzzle.puzzleName} with file id ${deletedPuzzle.spreadsheetFileId}`);
-      await client.puzzleDb.deletePuzzle(deletedPuzzle);
+      await puzzleDb.deletePuzzle(deletedPuzzle);
     }
 
     client.logger.log("Done scanning for new puzzles");
