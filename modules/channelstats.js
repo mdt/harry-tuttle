@@ -1,4 +1,5 @@
 const Database = require('better-sqlite3')
+const path = require('path')
 
 class ChannelTime {
 	 constructor (dbFilePath) {
@@ -168,5 +169,9 @@ class ChannelTime {
 	 }
 };
 
-var instance = new ChannelTime(process.env.DBPATH)
+const persistentFilePath = process.env.PERSISTENT_FILE_PATH || path.join('.', 'data');
+// Use of DBPATH envvar is deprecated and can eventually be removed
+// PERSISTENT_FILE_PATH should be set to a folder that persists across deployments
+var dbpath = process.env.DBPATH || path.join(persistentFilePath, 'channel_stats.db');
+var instance = new ChannelTime(dbpath)
 global.channelstats = instance;

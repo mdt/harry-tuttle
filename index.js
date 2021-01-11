@@ -9,6 +9,7 @@ const Discord = require("discord.js");
 const { promisify } = require("util");
 const readdir = promisify(require("fs").readdir);
 const Enmap = require("enmap");
+const path = require('path');
 
 const config = require("./config.js");
 const slugify = require("./modules/slugify.js")
@@ -49,7 +50,8 @@ client.aliases = new Enmap();
 // Now we integrate the use of Evie's awesome EnMap module, which
 // essentially saves a collection to disk. This is great for per-server configs,
 // and makes things extremely easy for this purpose.
-client.settings = new Enmap({name: "settings"});
+const dataDir = process.env.PERSISTENT_FILE_PATH || path.join('.', 'data');
+client.settings = new Enmap({ name: "settings", dataDir: dataDir });
 
 const googleSecrets = process.env.GOOGLE_API_CREDENTIALS ? JSON.parse(process.env.GOOGLE_API_CREDENTIALS) : client.config.googleApiCredentials;
 client.google = require("./modules/gapiclient.js")(googleSecrets, client.logger);
