@@ -12,6 +12,10 @@ module.exports = (client, puzzleRootFolderId) => {
     return filename.replace(/^solved *-? */gi, '');
   }
 
+  function getDiscordCategoryName(folderName) {
+    return folderName.toLowerCase().replace(/[^-0-9a-z&:_ ]/g, '');
+  }
+
   var timer;
   function waitAndThenSyncSheetsToDb() {
     if (timer) {
@@ -41,7 +45,7 @@ module.exports = (client, puzzleRootFolderId) => {
     let foldersToCheck = [puzzleRootFolderId];
     let dbFolder = dbFoldersByFileId[puzzleRootFolderId];
     let folderName = 'Puzzles';
-    let discordCategoryName = folderName.toLowerCase();
+    let discordCategoryName = getDiscordCategoryName(folderName);
     if (dbFolder) {
       delete dbFoldersByFileId[puzzleRootFolderId];
       if (dbFolder.folderName !== folderName || dbFolder.discordCategoryName !== discordCategoryName) {
@@ -59,15 +63,12 @@ module.exports = (client, puzzleRootFolderId) => {
       let currentFolderId = foldersToCheck.shift();
       let driveResponse = await gdrive.getFileList(currentFolderId);
       let files = driveResponse.data.files;
-      // client.logger.log(`Fetched ${files.length} files from Google Drive`);
       files.forEach(file => {
-        //  client.logger.log(`---Looking at sheet:---`)
-        //  client.logger.log(JSON.stringify(file));
         if (file.mimeType === 'application/vnd.google-apps.folder') {
           foldersToCheck.push(file.id);
           let dbFolder = dbFoldersByFileId[file.id];
           let folderName = file.name;
-          let discordCategoryName = folderName.toLowerCase().replace(/[^-0-9a-z_ ]/g, '');
+          let discordCategoryName = getDiscordCategoryName(folderName);
           if (dbFolder) {
             delete dbFoldersByFileId[file.id];
             if (dbFolder.folderName !== folderName || dbFolder.discordCategoryName !== discordCategoryName) {
@@ -89,9 +90,8 @@ module.exports = (client, puzzleRootFolderId) => {
           let discordVoiceChannelName = slugify(puzzleName);
           if (dbPuzzle) {
             delete dbPuzzlesBySpreadsheetFileId[file.id];
-            // client.logger.log(`Found matching puzzle in DB`);
             if (dbPuzzle.status === 'X') {
-              // ignore this puzzle completely
+              // ignore this puzzle completely - for future use
               return;
             }
             if (file.parents[0] !== dbPuzzle.parentFolderId || file.name !== dbPuzzle.spreadsheetName || puzzleName !== dbPuzzle.puzzleName || status !== dbPuzzle.status || discordVoiceChannelName !== dbPuzzle.discordVoiceChannelName) {
