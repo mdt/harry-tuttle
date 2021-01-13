@@ -81,7 +81,7 @@ exports.run = async (client, message, args, _level) => { // eslint-disable-line 
 exports.conf = {
   enabled: true,
   guildOnly: true,
-  aliases: ['puzzlestatus'],
+	 aliases: ['puzzlestatus','status'],
   permLevel: "User"
 };
 

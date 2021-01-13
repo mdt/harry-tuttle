@@ -68,6 +68,17 @@ class ChannelTime {
 		  var result = this._get_channel.all(chan);
 		  return result[0];
 	 }
+
+	 delete_channel(chan) {
+		  const del = this.db.transaction((c) => {
+				var stmt1 = this.db.prepare(`DELETE FROM channels WHERE channel = '${c}'`);
+				var stmt2 = this.db.prepare(`DELETE FROM channel_stats WHERE channel = '${c}'`);
+				var inf1 = stmt1.run();
+				var inf2 = stmt2.run();
+				return inf1.changes;
+		  });
+		  return del(chan);
+	 }
 	 
 	 find_channels(search_str, unsolved_only) {
 		  var stmt
