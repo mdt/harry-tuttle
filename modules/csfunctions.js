@@ -129,9 +129,9 @@ exports.delete_channel = async (channel) => {
 		  await channel.delete()
 
 		  // if category is now empty, delete it
-		  if (category.children.size == 0) {
+		  if (category && category.children && category.children.size == 0) {
 				console.log(`Deleting category ${category.name}, it's empty`);
-				category.delete()
+				await category.delete()
 		  }
 	 }
 }
