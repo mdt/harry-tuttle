@@ -61,8 +61,7 @@ module.exports = (client, puzzleRootFolderId, puzzleDb) => {
 
     while (foldersToCheck.length) {
       let currentFolderId = foldersToCheck.shift();
-      let driveResponse = await gdrive.getFileList(currentFolderId);
-      let files = driveResponse.data.files;
+      let files = await gdrive.getFileList(currentFolderId);
       files.forEach(file => {
         if (file.mimeType === 'application/vnd.google-apps.folder') {
           foldersToCheck.push(file.id);
