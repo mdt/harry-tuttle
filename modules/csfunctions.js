@@ -134,4 +134,5 @@ exports.delete_channel = async (channel) => {
 				category.delete()
 		  }
 	 }
+	 return moveMembers.length;
 }
