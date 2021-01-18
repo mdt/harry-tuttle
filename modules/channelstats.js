@@ -45,7 +45,15 @@ class ChannelTime {
               FROM channel_stats s LEFT JOIN current_channel cc ON s.channel = cc.channel AND s.uid = cc.uid WHERE s.channel = @channel AND total_seconds >= @min_seconds ORDER BY total_seconds DESC
             `);
 		  this._stats_query.safeIntegers(true) // this is critical, because JavaScript is a shitty fucking mickey mouse language
-		  
+
+		  this._solve_timeline = this.db.prepare(
+				`SELECT s.channel, 
+		             (joined_seconds + ifnull(strftime('%s','now') - cc.joined_time/1000, 0)) AS total_seconds,
+                   CASE WHEN cc.joined_time IS NOT NULL THEN 'now'
+                        ELSE last_seen
+                   END AS last_seen
+              FROM channel_stats s LEFT JOIN current_channel cc ON s.channel = cc.channel AND s.uid = cc.uid WHERE s.uid = @uid ORDER BY last_seen ASC
+		  `);
 		  process.on('exit', () => this.db.close())
 	 }
 
@@ -102,6 +110,10 @@ class ChannelTime {
 	 
 	 get_channel_stats(channel_name, min_seconds = 0) {
 		  return this._stats_query.all({channel: channel_name, min_seconds: min_seconds})
+	 }
+
+	 get_user_stats(uid) {
+		  return this._solve_timeline.all({uid: uid});
 	 }
 	 
 	 current_channel(uid) {
