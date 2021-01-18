@@ -15,7 +15,13 @@ exports.run = async (client, message, args, _level) => {
 	 client.logger.log(`Getting stats for user ${message.author.username}`);
 
 	 let stats = channelstats.get_user_stats(message.author.id);
-	 let data = [["puzzle", "time spent", "last seen"]];
+	 let headerdata = [["puzzle", "time spent", "last seen"]];
+	 let data = headerdata;
+	 let header = "";
+	 if (message.guild)
+		  header = `Solve timeline for ${message.member.displayName}:\n`;
+	 const opts = { drawHorizontalLine: (index, size) => { return index == 0 || index == 1 || index == size; } }
+	 let i = 0;
 	 for (const row of stats) {
 		  let joined_time = format_dTime(row.total_seconds)
 		  let last_seen;
@@ -25,15 +31,17 @@ exports.run = async (client, message, args, _level) => {
 				last_seen = format_dTime((Date.now() - row.last_seen)/1000) + " ago";
 
 		  data.push([row.channel, joined_time, last_seen]);
+		  if (++i % 20 === 0) {
+				// paginate to 20 at a time b/c of Discord 2000 char limit per message
+				const tableOut = table(data, opts);
+				message.channel.send(`${header}\`${tableOut}\``);
+				data = headerdata;
+		  }
 	 }
-	 const opts = { drawHorizontalLine: (index, size) => { return index == 0 || index == 1 || index == size; } }
-	 const tableOut = table(data, opts);
-
-	 let txt = "";
-	 if (message.guild)
-		  txt = `Solve timeline for ${message.member.displayName}:\n`;
-	 txt += `\`${tableOut}\``;
-	 message.channel.send(txt)
+	 if (data.length > 1) {
+		  const tableOut = table(data, opts);
+		  message.channel.send(`${header}\`${tableOut}\``);
+	 }
 }
 
 exports.conf = {
