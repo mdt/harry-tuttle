@@ -4,35 +4,35 @@
 
 ### Initial setup
 
-- Give Josh an ssh public key to authorize access to dokku.
-- git clone this repo
-- `git remote add dokku dokku@flushlyft.com:harry-tuttle`
+- `git clone` this repo
+- Ask Josh to invite you to https://fly.io/apps/harry-tuttle
+- Install https://fly.io cli
+- `fly auth login`
 
 ### To do a deploy
 
-- `git push dokku`
+- `fly deploy`
 
-Generally that's all you'll need to do.
-It will take several minutes
-and you'll see a bunch of status messages
-that are included as the output of your `git push` command.
-If there are errors, they're usually pretty helpful.
-If you get into an egregiously bad state and it's refusing to deploy,
-you can kick it with `ssh dokku@flushlyft.com apps:unlock harry-tuttle`.
-(But you should need this rarely, if ever.)
+Generally that's all you'll need to do.  It will take several minutes and
+you'll see a bunch of status messages
+
 
 ### To view logs
 
-- To view recent logs: `ssh dokku@flushlyft.com logs harry-tuttle`
-- To continuously follow the logs: `ssh dokku@flushlyft.com logs harry-tuttle -t`
+- To continuously follow the logs: `fly logs` or use https://fly.io/apps/harry-tuttle
+
+### Debug, poke around
+
+- To ssh into the running app: `fly ssh console`
 
 ### To change a configuration variable
 
 You'll probably never need to do this, but:
 
-- `ssh dokku@flushlyft.com config:set harry-tuttle VAR=val`
+- add K=V to `[env]` section of `fly.toml` to configure a non-secret env variable
+- `fly secrets set K=V` to configure a secret env variable
 
-This will be available in the code as an environment variable (e.g. `process.env.VAR`).
+These variables will be available in the code as an environment variable (e.g. `process.env.VAR`).
 
 ## To run the bot locally
 
